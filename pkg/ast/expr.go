@@ -1,7 +1,7 @@
 package ast
 
 import (
-	"github.com/kaschnit/golox/pkg/scanner/token"
+	"github.com/kaschnit/golox/pkg/token"
 )
 
 type Expr interface {

@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"strconv"
 
-	"github.com/kaschnit/golox/pkg/scanner/token"
-	"github.com/kaschnit/golox/pkg/scanner/token/tokentype"
+	"github.com/kaschnit/golox/pkg/token"
+	"github.com/kaschnit/golox/pkg/token/tokentype"
 	"github.com/kaschnit/golox/pkg/utils/errorutil"
 	"github.com/kaschnit/golox/pkg/utils/stringutil"
 )

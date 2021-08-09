@@ -9,4 +9,4 @@ function generate() {
 	go run ${GENERATOR} -json ${ENUM_CONFIGS_PATH}/$1 -output $2
 }
 
-generate "TokenType.json" "${PROJECT_ROOT}/pkg/scanner/token/tokentype"
+generate "TokenType.json" "${PROJECT_ROOT}/pkg/token/tokentype"

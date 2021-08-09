@@ -3,8 +3,8 @@ package scanner
 import (
 	"testing"
 
-	"github.com/kaschnit/golox/pkg/scanner/token"
-	"github.com/kaschnit/golox/pkg/scanner/token/tokentype"
+	"github.com/kaschnit/golox/pkg/token"
+	"github.com/kaschnit/golox/pkg/token/tokentype"
 	"github.com/stretchr/testify/assert"
 )
 
