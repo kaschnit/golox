@@ -1,8 +1,11 @@
 package ast
 
+type Visitable interface {
+	Accept(v AstVisitor) interface{}
+}
 type AstVisitor interface {
-	VisitBinaryExpr(*BinaryExpr)
-	VisitUnaryExpr(*UnaryExpr)
-	VisitGroupingExpr(*GroupingExpr)
-	VisitLiteralExpr(*LiteralExpr)
+	VisitBinaryExpr(*BinaryExpr) interface{}
+	VisitUnaryExpr(*UnaryExpr) interface{}
+	VisitGroupingExpr(*GroupingExpr) interface{}
+	VisitLiteralExpr(*LiteralExpr) interface{}
 }

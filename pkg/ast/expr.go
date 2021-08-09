@@ -5,7 +5,7 @@ import (
 )
 
 type Expr interface {
-	Accept(v AstVisitor)
+	Accept(v AstVisitor) interface{}
 }
 
 type BinaryExpr struct {
@@ -14,8 +14,8 @@ type BinaryExpr struct {
 	Right    Expr
 }
 
-func (e *BinaryExpr) Accept(v AstVisitor) {
-	v.VisitBinaryExpr(e)
+func (e *BinaryExpr) Accept(v AstVisitor) interface{} {
+	return v.VisitBinaryExpr(e)
 }
 
 type UnaryExpr struct {
@@ -23,22 +23,22 @@ type UnaryExpr struct {
 	Right    Expr
 }
 
-func (e *UnaryExpr) Accept(v AstVisitor) {
-	v.VisitUnaryExpr(e)
+func (e *UnaryExpr) Accept(v AstVisitor) interface{} {
+	return v.VisitUnaryExpr(e)
 }
 
 type GroupingExpr struct {
 	Expression Expr
 }
 
-func (e *GroupingExpr) Accept(v AstVisitor) {
-	v.VisitGroupingExpr(e)
+func (e *GroupingExpr) Accept(v AstVisitor) interface{} {
+	return v.VisitGroupingExpr(e)
 }
 
 type LiteralExpr struct {
 	Value interface{}
 }
 
-func (e *LiteralExpr) Accept(v AstVisitor) {
-	v.VisitLiteralExpr(e)
+func (e *LiteralExpr) Accept(v AstVisitor) interface{} {
+	return v.VisitLiteralExpr(e)
 }
