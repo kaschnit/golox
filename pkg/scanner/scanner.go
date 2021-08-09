@@ -96,8 +96,9 @@ func (s *Scanner) scanToken() (*token.Token, error) {
 		if s.peek(1) == '/' {
 			s.throwAwayLine()
 			return s.scanToken()
+		} else {
+			return s.createToken(tokentype.SLASH), nil
 		}
-		return s.createToken(tokentype.SLASH), nil
 	case '!':
 		if s.peek(1) == '=' {
 			s.current++
