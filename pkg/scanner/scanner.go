@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"strconv"
 
+	loxerr "github.com/kaschnit/golox/pkg/errors"
 	"github.com/kaschnit/golox/pkg/token"
 	"github.com/kaschnit/golox/pkg/token/tokentype"
-	"github.com/kaschnit/golox/pkg/utils/errorutil"
 	"github.com/kaschnit/golox/pkg/utils/stringutil"
 )
 
@@ -47,7 +47,7 @@ func (s *Scanner) ScanAllTokens() ([]*token.Token, []error) {
 
 func (s *Scanner) ScanToken() (*token.Token, error) {
 	if s.finished {
-		return nil, errorutil.LoxError(s.line, "Scanner has already reached EOF")
+		return nil, loxerr.NewLoxInternalError("Scanner has already reached EOF")
 	}
 
 	s.start = s.current
@@ -153,7 +153,7 @@ func (s *Scanner) scanToken() (*token.Token, error) {
 		}
 		s.hasError = true
 		errMsg := fmt.Sprintf("Unrecognized character %s", string(char))
-		return nil, errorutil.LoxError(s.line, errMsg)
+		return nil, loxerr.NewLoxErrorAtLine(s.line, errMsg)
 	}
 }
 
@@ -166,7 +166,7 @@ func (s *Scanner) scanString() (*token.Token, error) {
 	}
 
 	if s.isAtEnd() {
-		return nil, errorutil.LoxError(s.line, "Unterminated string.")
+		return nil, loxerr.NewLoxErrorAtLine(s.line, "Unterminated string.")
 	}
 
 	lexeme := string(s.source[s.start+1 : s.current])
@@ -210,7 +210,7 @@ func (s *Scanner) scanIdentifier() (*token.Token, error) {
 
 	lexeme := s.currentLexeme()
 	return &token.Token{
-		Type:    tokentype.AsIdenitfierOrKeyword(lexeme),
+		Type:    tokentype.FromIdentifier(lexeme),
 		Lexeme:  lexeme,
 		Literal: nil,
 		Line:    s.line,

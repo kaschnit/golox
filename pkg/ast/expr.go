@@ -10,7 +10,7 @@ type Expr interface {
 
 type BinaryExpr struct {
 	Left     Expr
-	Operator token.Token
+	Operator *token.Token
 	Right    Expr
 }
 
@@ -19,7 +19,7 @@ func (e *BinaryExpr) Accept(v AstVisitor) interface{} {
 }
 
 type UnaryExpr struct {
-	Operator token.Token
+	Operator *token.Token
 	Right    Expr
 }
 

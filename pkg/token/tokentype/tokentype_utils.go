@@ -1,6 +1,6 @@
 package tokentype
 
-func AsIdenitfierOrKeyword(identifier string) TokenType {
+func FromIdentifier(identifier string) TokenType {
 	switch identifier {
 	case "and":
 		return AND
@@ -36,5 +36,16 @@ func AsIdenitfierOrKeyword(identifier string) TokenType {
 		return WHILE
 	default:
 		return IDENTIFIER
+	}
+}
+
+func ConstantLiteralValue(tokenType TokenType) interface{} {
+	switch tokenType {
+	case TRUE:
+		return true
+	case FALSE:
+		return false
+	default:
+		return nil
 	}
 }

@@ -2,7 +2,7 @@
 HERE="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
 PROJECT_ROOT=$(dirname ${HERE})
 ENUM_CONFIGS_PATH="${PROJECT_ROOT}/configs/enum"
-GENERATOR="${PROJECT_ROOT}/tools/enum_gen"
+GENERATOR="${PROJECT_ROOT}/tools/codegen/enumgen_golang"
 
 function generate() {
 	echo "Generating enum from ${ENUM_CONFIGS_PATH}/$1"

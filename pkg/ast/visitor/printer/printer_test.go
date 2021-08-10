@@ -116,12 +116,12 @@ func TestAstPrinter_Unary(t *testing.T) {
 	printer := NewAstPrinter()
 	verifyPrintedToStdout(t, "(! 123)", func() {
 		literalExpr := ast.LiteralExpr{Value: 123}
-		unaryExpr := ast.UnaryExpr{Operator: bangToken, Right: &literalExpr}
+		unaryExpr := ast.UnaryExpr{Operator: &bangToken, Right: &literalExpr}
 		unaryExpr.Accept(printer)
 	})
 	verifyPrintedToStdout(t, "(- abc)", func() {
 		literalExpr := ast.LiteralExpr{Value: "abc"}
-		unaryExpr := ast.UnaryExpr{Operator: minusToken, Right: &literalExpr}
+		unaryExpr := ast.UnaryExpr{Operator: &minusToken, Right: &literalExpr}
 		unaryExpr.Accept(printer)
 	})
 }
@@ -131,16 +131,16 @@ func TestAstPrinter_GroupingWithUnary(t *testing.T) {
 	verifyPrintedToStdout(t, "(group (- (group 123)))", func() {
 		literalExpr := ast.LiteralExpr{Value: 123}
 		groupExpr := ast.GroupingExpr{Expression: &literalExpr}
-		unaryExpr := ast.UnaryExpr{Operator: minusToken, Right: &groupExpr}
+		unaryExpr := ast.UnaryExpr{Operator: &minusToken, Right: &groupExpr}
 		groupUnaryExpr := ast.GroupingExpr{Expression: &unaryExpr}
 		groupUnaryExpr.Accept(printer)
 	})
 	verifyPrintedToStdout(t, "(! (group (- (group 123))))", func() {
 		literalExpr := ast.LiteralExpr{Value: 123}
 		groupExpr := ast.GroupingExpr{Expression: &literalExpr}
-		unaryExpr := ast.UnaryExpr{Operator: minusToken, Right: &groupExpr}
+		unaryExpr := ast.UnaryExpr{Operator: &minusToken, Right: &groupExpr}
 		groupUnaryExpr := ast.GroupingExpr{Expression: &unaryExpr}
-		parentUnaryEpr := ast.UnaryExpr{Operator: bangToken, Right: &groupUnaryExpr}
+		parentUnaryEpr := ast.UnaryExpr{Operator: &bangToken, Right: &groupUnaryExpr}
 		parentUnaryEpr.Accept(printer)
 	})
 }
@@ -150,19 +150,19 @@ func TestAstPrinter_BinaryExpr(t *testing.T) {
 	verifyPrintedToStdout(t, "(* hello 123)", func() {
 		leftExpr := ast.LiteralExpr{Value: "hello"}
 		rightExpr := ast.LiteralExpr{Value: 123}
-		binaryExpr := ast.BinaryExpr{Left: &leftExpr, Operator: starToken, Right: &rightExpr}
+		binaryExpr := ast.BinaryExpr{Left: &leftExpr, Operator: &starToken, Right: &rightExpr}
 		binaryExpr.Accept(printer)
 	})
 	verifyPrintedToStdout(t, "(* nil 123)", func() {
 		leftExpr := ast.LiteralExpr{Value: nil}
 		rightExpr := ast.LiteralExpr{Value: 123}
-		binaryExpr := ast.BinaryExpr{Left: &leftExpr, Operator: starToken, Right: &rightExpr}
+		binaryExpr := ast.BinaryExpr{Left: &leftExpr, Operator: &starToken, Right: &rightExpr}
 		binaryExpr.Accept(printer)
 	})
 	verifyPrintedToStdout(t, "(* nil nil)", func() {
 		leftExpr := ast.LiteralExpr{Value: nil}
 		rightExpr := ast.LiteralExpr{Value: nil}
-		binaryExpr := ast.BinaryExpr{Left: &leftExpr, Operator: starToken, Right: &rightExpr}
+		binaryExpr := ast.BinaryExpr{Left: &leftExpr, Operator: &starToken, Right: &rightExpr}
 		binaryExpr.Accept(printer)
 	})
 }
@@ -172,31 +172,31 @@ func TestAstPrinter_BinaryExprWithSubExpressions(t *testing.T) {
 	verifyPrintedToStdout(t, "(* (group hello) (group 123))", func() {
 		leftExpr := ast.GroupingExpr{Expression: &ast.LiteralExpr{Value: "hello"}}
 		rightExpr := ast.GroupingExpr{Expression: &ast.LiteralExpr{Value: 123}}
-		binaryExpr := ast.BinaryExpr{Left: &leftExpr, Operator: starToken, Right: &rightExpr}
+		binaryExpr := ast.BinaryExpr{Left: &leftExpr, Operator: &starToken, Right: &rightExpr}
 		binaryExpr.Accept(printer)
 	})
 	verifyPrintedToStdout(t, "(= hello (group 123))", func() {
 		leftExpr := ast.LiteralExpr{Value: "hello"}
 		rightExpr := ast.GroupingExpr{Expression: &ast.LiteralExpr{Value: 123}}
-		binaryExpr := ast.BinaryExpr{Left: &leftExpr, Operator: equalToken, Right: &rightExpr}
+		binaryExpr := ast.BinaryExpr{Left: &leftExpr, Operator: &equalToken, Right: &rightExpr}
 		binaryExpr.Accept(printer)
 	})
 	verifyPrintedToStdout(t, "(* (group hello) (- 123))", func() {
 		leftExpr := ast.GroupingExpr{Expression: &ast.LiteralExpr{Value: "hello"}}
-		rightExpr := ast.UnaryExpr{Operator: minusToken, Right: &ast.LiteralExpr{Value: 123}}
-		binaryExpr := ast.BinaryExpr{Left: &leftExpr, Operator: starToken, Right: &rightExpr}
+		rightExpr := ast.UnaryExpr{Operator: &minusToken, Right: &ast.LiteralExpr{Value: 123}}
+		binaryExpr := ast.BinaryExpr{Left: &leftExpr, Operator: &starToken, Right: &rightExpr}
 		binaryExpr.Accept(printer)
 	})
 	verifyPrintedToStdout(t, "(+ (* (group 2) (- 3)) (* (group hello) 123))", func() {
 		leftLeftExpr := ast.GroupingExpr{Expression: &ast.LiteralExpr{Value: 2}}
-		leftRightExpr := ast.UnaryExpr{Operator: minusToken, Right: &ast.LiteralExpr{Value: 3}}
-		leftBinaryExpr := ast.BinaryExpr{Left: &leftLeftExpr, Operator: starToken, Right: &leftRightExpr}
+		leftRightExpr := ast.UnaryExpr{Operator: &minusToken, Right: &ast.LiteralExpr{Value: 3}}
+		leftBinaryExpr := ast.BinaryExpr{Left: &leftLeftExpr, Operator: &starToken, Right: &leftRightExpr}
 
 		rightLeftExpr := ast.GroupingExpr{Expression: &ast.LiteralExpr{Value: "hello"}}
 		rightRightExpr := ast.LiteralExpr{Value: 123}
-		rightBinaryExpr := ast.BinaryExpr{Left: &rightLeftExpr, Operator: starToken, Right: &rightRightExpr}
+		rightBinaryExpr := ast.BinaryExpr{Left: &rightLeftExpr, Operator: &starToken, Right: &rightRightExpr}
 
-		binaryExpr := ast.BinaryExpr{Left: &leftBinaryExpr, Operator: plusToken, Right: &rightBinaryExpr}
+		binaryExpr := ast.BinaryExpr{Left: &leftBinaryExpr, Operator: &plusToken, Right: &rightBinaryExpr}
 		binaryExpr.Accept(printer)
 	})
 }
