@@ -11,12 +11,11 @@ import (
 	"path"
 	"strings"
 	"text/template"
-	"time"
 )
 
 const enumFileTemplate = `// GENERATED - DO NOT MODIFY THIS FILE DIRECTLY.
 // To modify this file, edit the corresponding JSON file "{{.SourceFileName}}".
-// This file was generated on {{.Date}} from source {{.SourceFileName}}
+// This file was generated from source {{.SourceFileName}} by enumgen_golang.
 package {{.Data.Package}}
 
 type {{.Data.Type}} int
@@ -31,7 +30,7 @@ const (
 
 const stringFileTemplate = `// GENERATED - DO NOT MODIFY THIS FILE DIRECTLY.
 // To modify this file, edit the corresponding JSON file "{{.SourceFileName}}".
-// This file was generated on {{.Date}} from source {{.SourceFileName}}
+// This file was generated from source {{.SourceFileName}} by enumgen_golang.
 package {{.Data.Package}}
 
 func ({{.Data.Type | LowerCase}} {{.Data.Type}}) String() string {
@@ -55,7 +54,6 @@ type TemplateData struct {
 type TemplateParams struct {
 	Data           TemplateData
 	SourceFileName string
-	Date           string
 }
 
 func loadJson(jsonPath string) (*TemplateParams, error) {
@@ -80,7 +78,6 @@ func loadJson(jsonPath string) (*TemplateParams, error) {
 	return &TemplateParams{
 		Data:           data,
 		SourceFileName: path.Base(jsonPath),
-		Date:           time.Now().String(),
 	}, nil
 }
 

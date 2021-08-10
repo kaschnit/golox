@@ -1,6 +1,6 @@
 // GENERATED - DO NOT MODIFY THIS FILE DIRECTLY.
 // To modify this file, edit the corresponding JSON file "TokenType.json".
-// This file was generated on 2021-08-08 21:48:00.409958 -0400 EDT m=+0.000387319 from source TokenType.json
+// This file was generated from source TokenType.json by enumgen_golang.
 package tokentype
 
 type TokenType int

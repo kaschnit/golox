@@ -1,7 +1,7 @@
 .PHONY: test
 
 generate:
-	./scripts/enumgen.sh
+	./scripts/codegen.sh
 
 test:
 	mkdir -p coverage
