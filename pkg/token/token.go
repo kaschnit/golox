@@ -3,7 +3,7 @@ package token
 import (
 	"fmt"
 
-	"github.com/kaschnit/golox/pkg/scanner/token/tokentype"
+	"github.com/kaschnit/golox/pkg/token/tokentype"
 )
 
 type Token struct {
