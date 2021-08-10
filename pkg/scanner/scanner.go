@@ -65,8 +65,7 @@ func (s *Scanner) scanToken() (*token.Token, error) {
 		}, nil
 	}
 
-	char := s.peek(1)
-	s.current++
+	char := s.advance()
 
 	switch char {
 	// Tokens guaranteed to be 1 character
@@ -244,6 +243,12 @@ func (s *Scanner) peek(lookahead int) rune {
 		return '\x00'
 	}
 	return s.source[s.current+lookahead-1]
+}
+
+func (s *Scanner) advance() rune {
+	result := s.peek(1)
+	s.current++
+	return result
 }
 
 func (s *Scanner) isAtEnd() bool {
