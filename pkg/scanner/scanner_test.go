@@ -1,6 +1,7 @@
 package scanner
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/kaschnit/golox/pkg/token"
@@ -102,64 +103,76 @@ func TestScanTokenKeyword_Success(t *testing.T) {
 	verifyScanTokenSingleKeyword(t, "while", tokentype.WHILE)
 }
 
-func TestScanTokenString_Success(t *testing.T) {
-	var input string
-	var scanner *Scanner
-	var token *token.Token
-	var err error
-
-	input = `"hello"`
-	scanner = NewScanner(input)
-	token, err = scanner.ScanToken()
+func TestScanTokenString_BasicString(t *testing.T) {
+	expected := "hello"
+	input := fmt.Sprintf(`"%s"`, expected)
+	scanner := NewScanner(input)
+	token, err := scanner.ScanToken()
 	assert.Nil(t, err)
 	assert.Equal(t, tokentype.STRING, token.Type)
-	assert.Equal(t, "hello", token.Lexeme)
-	assert.Equal(t, "hello", token.Literal)
+	assert.Equal(t, expected, token.Lexeme)
+	assert.Equal(t, expected, token.Literal)
 	assert.Equal(t, token.Line, 1)
+}
 
-	input = `" hello  "`
-	scanner = NewScanner(input)
-	token, err = scanner.ScanToken()
+func TestScanTokenString_StringWithWhitespace(t *testing.T) {
+	expected := " hello  \t"
+	input := fmt.Sprintf(`"%s"`, expected)
+	scanner := NewScanner(input)
+	token, err := scanner.ScanToken()
 	assert.Nil(t, err)
 	assert.Equal(t, tokentype.STRING, token.Type)
-	assert.Equal(t, " hello  ", token.Lexeme)
-	assert.Equal(t, " hello  ", token.Literal)
+	assert.Equal(t, expected, token.Lexeme)
+	assert.Equal(t, expected, token.Literal)
 	assert.Equal(t, token.Line, 1)
-
-	input = `"hello // here's a comment"`
-	scanner = NewScanner(input)
-	token, err = scanner.ScanToken()
+}
+func TestScanTokenString_StringWithComment(t *testing.T) {
+	expected := "hello // here's a comment"
+	input := fmt.Sprintf(`"%s"`, expected)
+	scanner := NewScanner(input)
+	token, err := scanner.ScanToken()
 	assert.Nil(t, err)
 	assert.Equal(t, tokentype.STRING, token.Type)
-	assert.Equal(t, "hello // here's a comment", token.Lexeme)
-	assert.Equal(t, "hello // here's a comment", token.Literal)
+	assert.Equal(t, expected, token.Lexeme)
+	assert.Equal(t, expected, token.Literal)
 	assert.Equal(t, token.Line, 1)
+}
 
-	input = `"hello`
-	scanner = NewScanner(input)
-	token, err = scanner.ScanToken()
+func TestScanTokenString_UnterminatedString(t *testing.T) {
+	input := `"hello`
+	scanner := NewScanner(input)
+	token, err := scanner.ScanToken()
 	assert.Error(t, err)
 	assert.Nil(t, token)
-
-	input = `"hello
-	
-	a
-
-	"
-	
-`
-	scanner = NewScanner(input)
-	token, err = scanner.ScanToken()
+}
+func TestScanTokenString_Multiline(t *testing.T) {
 	expected := `hello
 	
 	a
 
 	`
+	input := fmt.Sprintf(`"%s"
+	
+`, expected)
+	scanner := NewScanner(input)
+	token, err := scanner.ScanToken()
 	assert.Nil(t, err)
 	assert.Equal(t, tokentype.STRING, token.Type)
 	assert.Equal(t, expected, token.Lexeme)
 	assert.Equal(t, expected, token.Literal)
 	assert.Equal(t, token.Line, 5)
+}
+
+func TestScanTokenString_EmptyString(t *testing.T) {
+	expected := ""
+	input := fmt.Sprintf(`"%s"`, expected)
+	scanner := NewScanner(input)
+	token, err := scanner.ScanToken()
+	assert.Nil(t, err)
+	assert.Equal(t, tokentype.STRING, token.Type)
+	assert.Equal(t, expected, token.Lexeme)
+	assert.Equal(t, expected, token.Literal)
+	assert.Equal(t, token.Line, 1)
 }
 
 func TestScanTokenIdentifier_KeywordCaseSensitive(t *testing.T) {
@@ -206,7 +219,7 @@ func TestScanTokenIdentifier_Success(t *testing.T) {
 	verifyScanTokenSingleIdentifier(t, "hello123_")
 }
 
-func TestScanTokenLineCounting(t *testing.T) {
+func TestScanToken_CountsLines(t *testing.T) {
 	var token *token.Token
 	var err error
 
@@ -260,7 +273,7 @@ func TestScanTokenLineCounting(t *testing.T) {
 	assert.Equal(t, 5, token.Line)
 }
 
-func TestScanTokenSkipsWhitespace(t *testing.T) {
+func TestScanToken_SkipsWhitespace(t *testing.T) {
 	var token *token.Token
 	var err error
 
@@ -310,7 +323,7 @@ func TestScanTokenSkipsWhitespace(t *testing.T) {
 	assert.Equal(t, 1, token.Line)
 }
 
-func TestScanTokenInvalidCharacter_FailsThenRecovers(t *testing.T) {
+func TestScanToken_InvalidCharacterFailsThenRecovers(t *testing.T) {
 	var token *token.Token
 	var err error
 
@@ -346,7 +359,7 @@ func TestScanTokenInvalidCharacter_FailsThenRecovers(t *testing.T) {
 	assert.Equal(t, 1, token.Line)
 }
 
-func TestScanTokenCommentThrownOut(t *testing.T) {
+func TestScanToken_CommentThrownOut(t *testing.T) {
 	var input string
 	var scanner *Scanner
 	var token *token.Token
