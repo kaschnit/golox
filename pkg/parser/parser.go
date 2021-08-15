@@ -23,86 +23,154 @@ func NewParser(tokens []*token.Token) *Parser {
 	}
 }
 
-func (p *Parser) Parse() ast.Expr {
-	return p.parseExpression()
+func (p *Parser) Parse() *ast.Program {
+	if numTokens := len(p.tokens); numTokens > 0 && p.tokens[numTokens-1].Type != tokentype.EOF {
+		p.errors = append(p.errors, loxerr.NewLoxErrorAtToken(p.tokens[numTokens-1], "Expected EOF."))
+	}
+	return p.parseProgram()
 }
 
-func (p *Parser) parseProgram() ast.Expr {
-	// TODO implement
-	return nil
+func (p *Parser) parseProgram() *ast.Program {
+	statements := make([]ast.Stmt, 0)
+	for !p.isAtEnd() {
+		stmt, err := p.parseStatement()
+		if err != nil {
+			p.errors = append(p.errors, err)
+		} else {
+			statements = append(statements, stmt)
+		}
+	}
+	return &ast.Program{Statements: statements}
 }
 
-func (p *Parser) parseStatement() ast.Expr {
-	// TODO implement
-	return nil
+func (p *Parser) parseStatement() (ast.Stmt, error) {
+	if p.peekMatches(1, tokentype.PRINT) {
+		p.advance()
+		return p.parsePrintStatement()
+	}
+	return p.parseExpressionStatement()
 }
 
-func (p *Parser) parseExpression() ast.Expr {
+func (p *Parser) parsePrintStatement() (*ast.PrintStmt, error) {
+	printExpr, err := p.parseExpression()
+	if err != nil {
+		return nil, err
+	}
+
+	err = p.consume(tokentype.SEMICOLON, "Expected ';' after expression.")
+	if err != nil {
+		return nil, err
+	}
+	return &ast.PrintStmt{Expr: printExpr}, nil
+}
+
+func (p *Parser) parseExpressionStatement() (*ast.ExprStmt, error) {
+	expr, err := p.parseExpression()
+	if err != nil {
+		return nil, err
+	}
+
+	err = p.consume(tokentype.SEMICOLON, "Expected ';' after expression.")
+	if err != nil {
+		return nil, err
+	}
+	return &ast.ExprStmt{Expr: expr}, nil
+}
+
+func (p *Parser) parseExpression() (ast.Expr, error) {
 	return p.parseEquality()
 }
 
-func (p *Parser) parseEquality() ast.Expr {
-	expr := p.parseComparison()
+func (p *Parser) parseEquality() (ast.Expr, error) {
+	expr, err := p.parseComparison()
+	if err != nil {
+		return nil, err
+	}
+
 	for p.peekMatches(1, tokentype.BANG_EQUAL, tokentype.EQUAL_EQUAL) {
 		left := expr
 		operator := p.advance()
-		right := p.parseComparison()
+		right, err := p.parseComparison()
+		if err != nil {
+			return nil, err
+		}
 		expr = &ast.BinaryExpr{Left: left, Operator: operator, Right: right}
 	}
-	return expr
+	return expr, nil
 }
 
-func (p *Parser) parseComparison() ast.Expr {
+func (p *Parser) parseComparison() (ast.Expr, error) {
+	expr, err := p.parseTerm()
+	if err != nil {
+		return nil, err
+	}
+
 	matchTokens := []tokentype.TokenType{
 		tokentype.GREATER, tokentype.GREATER_EQUAL,
 		tokentype.LESS, tokentype.LESS_EQUAL,
 	}
-
-	expr := p.parseTerm()
 	for p.peekMatches(1, matchTokens...) {
 		left := expr
 		operator := p.advance()
-		right := p.parseTerm()
+		right, err := p.parseTerm()
+		if err != nil {
+			return nil, err
+		}
 		expr = &ast.BinaryExpr{Left: left, Operator: operator, Right: right}
 	}
-	return expr
+	return expr, nil
 }
 
-func (p *Parser) parseTerm() ast.Expr {
-	expr := p.parseFactor()
+func (p *Parser) parseTerm() (ast.Expr, error) {
+	expr, err := p.parseFactor()
+	if err != nil {
+		return nil, err
+	}
 	for p.peekMatches(1, tokentype.MINUS, tokentype.PLUS) {
 		left := expr
 		operator := p.advance()
-		right := p.parseFactor()
+		right, err := p.parseFactor()
+		if err != nil {
+			return nil, err
+		}
 		expr = &ast.BinaryExpr{Left: left, Operator: operator, Right: right}
 	}
-	return expr
+	return expr, nil
 }
 
-func (p *Parser) parseFactor() ast.Expr {
-	expr := p.parseUnary()
+func (p *Parser) parseFactor() (ast.Expr, error) {
+	expr, err := p.parseUnary()
+	if err != nil {
+		return nil, err
+	}
 	for p.peekMatches(1, tokentype.SLASH, tokentype.STAR) {
 		left := expr
 		operator := p.advance()
-		right := p.parseUnary()
+		right, err := p.parseUnary()
+		if err != nil {
+			return nil, err
+		}
 		expr = &ast.BinaryExpr{Left: left, Operator: operator, Right: right}
 	}
-	return expr
+	return expr, nil
 }
 
-func (p *Parser) parseUnary() ast.Expr {
+func (p *Parser) parseUnary() (ast.Expr, error) {
 	if p.peekMatches(1, tokentype.BANG, tokentype.MINUS) {
 		operator := p.advance()
-		right := p.parseUnary()
+		right, err := p.parseUnary()
+		if err != nil {
+			return nil, err
+		}
 		return &ast.UnaryExpr{
 			Operator: operator,
 			Right:    right,
-		}
+		}, nil
 	}
 	return p.parsePrimary()
 }
 
-func (p *Parser) parsePrimary() ast.Expr {
+func (p *Parser) parsePrimary() (ast.Expr, error) {
 	matchTokens := []tokentype.TokenType{
 		tokentype.NUMBER, tokentype.STRING,
 		tokentype.TRUE, tokentype.FALSE,
@@ -112,24 +180,26 @@ func (p *Parser) parsePrimary() ast.Expr {
 		matched := p.advance()
 		switch matched.Type {
 		case tokentype.TRUE:
-			return &ast.LiteralExpr{Value: true}
+			return &ast.LiteralExpr{Value: true}, nil
 		case tokentype.FALSE:
-			return &ast.LiteralExpr{Value: false}
+			return &ast.LiteralExpr{Value: false}, nil
 		default:
-			return &ast.LiteralExpr{Value: matched.Literal}
+			return &ast.LiteralExpr{Value: matched.Literal}, nil
 		}
 	} else if p.peekMatches(1, tokentype.LEFT_PAREN) {
 		p.advance()
-		result := p.parseExpression()
-		err := p.consume(tokentype.RIGHT_PAREN, "Expected ')' after expression.")
+		result, err := p.parseExpression()
 		if err != nil {
-			p.errors = append(p.errors, err)
+			return nil, err
 		}
-		return result
+
+		err = p.consume(tokentype.RIGHT_PAREN, "Expected ')' after expression.")
+		if err != nil {
+			return nil, err
+		}
+		return result, nil
 	} else {
-		// This means there is a bug in the parser, not a bad input.
-		err := loxerr.NewLoxInternalError("No tokens matched by parser")
-		panic(err)
+		return nil, loxerr.NewLoxErrorAtToken(p.peek(1), "Expected expression.")
 	}
 }
 
@@ -144,7 +214,9 @@ func (p *Parser) consume(typeToMatch tokentype.TokenType, errorMessage string) e
 
 func (p *Parser) advance() *token.Token {
 	result := p.peek(1)
-	p.current++
+	if !p.isAtEnd() {
+		p.current++
+	}
 	return result
 }
 
@@ -159,4 +231,8 @@ func (p *Parser) peekMatches(lookahead int, tokenTypes ...tokentype.TokenType) b
 
 func (p *Parser) peek(lookahead int) *token.Token {
 	return p.tokens[p.current+lookahead-1]
+}
+
+func (p *Parser) isAtEnd() bool {
+	return p.peek(1).Type == tokentype.EOF
 }

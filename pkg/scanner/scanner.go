@@ -157,6 +157,7 @@ func (s *Scanner) scanToken() (*token.Token, error) {
 }
 
 func (s *Scanner) scanString() (*token.Token, error) {
+	// Advance the current pointer until EOF or closing quote is encountered.
 	for s.peek(1) != '"' && !s.isAtEnd() {
 		if s.peek(1) == '\n' {
 			s.line++
@@ -168,10 +169,13 @@ func (s *Scanner) scanString() (*token.Token, error) {
 		return nil, loxerr.NewLoxErrorAtLine(s.line, "Unterminated string.")
 	}
 
+	// Increment the current pointer past the closing '"'
+	s.current++
+
 	return &token.Token{
 		Type:    tokentype.STRING,
-		Lexeme:  string(s.source[s.start : s.current+1]),
-		Literal: string(s.source[s.start+1 : s.current]),
+		Lexeme:  s.currentLexeme(),
+		Literal: s.subLexeme(1, 1),
 		Line:    s.line,
 	}, nil
 }
@@ -234,6 +238,10 @@ func (s *Scanner) createToken(tokenType tokentype.TokenType) *token.Token {
 
 func (s *Scanner) currentLexeme() string {
 	return string(s.source[s.start:s.current])
+}
+
+func (s *Scanner) subLexeme(beginOffset int, endOffset int) string {
+	return string(s.source[s.start+beginOffset : s.current-endOffset])
 }
 
 func (s *Scanner) peek(lookahead int) rune {
