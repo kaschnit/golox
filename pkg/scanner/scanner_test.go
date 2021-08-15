@@ -110,7 +110,7 @@ func TestScanTokenString_BasicString(t *testing.T) {
 	token, err := scanner.ScanToken()
 	assert.Nil(t, err)
 	assert.Equal(t, tokentype.STRING, token.Type)
-	assert.Equal(t, expected, token.Lexeme)
+	assert.Equal(t, input, token.Lexeme)
 	assert.Equal(t, expected, token.Literal)
 	assert.Equal(t, token.Line, 1)
 }
@@ -122,7 +122,7 @@ func TestScanTokenString_StringWithWhitespace(t *testing.T) {
 	token, err := scanner.ScanToken()
 	assert.Nil(t, err)
 	assert.Equal(t, tokentype.STRING, token.Type)
-	assert.Equal(t, expected, token.Lexeme)
+	assert.Equal(t, input, token.Lexeme)
 	assert.Equal(t, expected, token.Literal)
 	assert.Equal(t, token.Line, 1)
 }
@@ -133,7 +133,7 @@ func TestScanTokenString_StringWithComment(t *testing.T) {
 	token, err := scanner.ScanToken()
 	assert.Nil(t, err)
 	assert.Equal(t, tokentype.STRING, token.Type)
-	assert.Equal(t, expected, token.Lexeme)
+	assert.Equal(t, input, token.Lexeme)
 	assert.Equal(t, expected, token.Literal)
 	assert.Equal(t, token.Line, 1)
 }
@@ -158,7 +158,7 @@ func TestScanTokenString_Multiline(t *testing.T) {
 	token, err := scanner.ScanToken()
 	assert.Nil(t, err)
 	assert.Equal(t, tokentype.STRING, token.Type)
-	assert.Equal(t, expected, token.Lexeme)
+	assert.Equal(t, fmt.Sprintf(`"%s"`, expected), token.Lexeme)
 	assert.Equal(t, expected, token.Literal)
 	assert.Equal(t, token.Line, 5)
 }
@@ -170,7 +170,7 @@ func TestScanTokenString_EmptyString(t *testing.T) {
 	token, err := scanner.ScanToken()
 	assert.Nil(t, err)
 	assert.Equal(t, tokentype.STRING, token.Type)
-	assert.Equal(t, expected, token.Lexeme)
+	assert.Equal(t, input, token.Lexeme)
 	assert.Equal(t, expected, token.Literal)
 	assert.Equal(t, token.Line, 1)
 }

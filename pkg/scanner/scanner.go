@@ -168,11 +168,10 @@ func (s *Scanner) scanString() (*token.Token, error) {
 		return nil, loxerr.NewLoxErrorAtLine(s.line, "Unterminated string.")
 	}
 
-	lexeme := string(s.source[s.start+1 : s.current])
 	return &token.Token{
 		Type:    tokentype.STRING,
-		Lexeme:  lexeme,
-		Literal: lexeme,
+		Lexeme:  string(s.source[s.start : s.current+1]),
+		Literal: string(s.source[s.start+1 : s.current]),
 		Line:    s.line,
 	}, nil
 }

@@ -23,9 +23,8 @@ func NewParser(tokens []*token.Token) *Parser {
 	}
 }
 
-func (p *Parser) Parse() *ast.Program {
-	// TODO implement
-	return nil
+func (p *Parser) Parse() ast.Expr {
+	return p.parseExpression()
 }
 
 func (p *Parser) parseProgram() ast.Expr {
