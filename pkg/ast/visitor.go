@@ -7,6 +7,9 @@ type AstVisitor interface {
 	VisitProgram(*Program) interface{}
 	VisitPrintStmt(*PrintStmt) interface{}
 	VisitExprStmt(*ExprStmt) interface{}
+	VisitIfStmt(*IfStmt) interface{}
+	VisitWhileStmt(*WhileStmt) interface{}
+	VisitBlockStmt(*BlockStmt) interface{}
 	VisitBinaryExpr(*BinaryExpr) interface{}
 	VisitUnaryExpr(*UnaryExpr) interface{}
 	VisitGroupingExpr(*GroupingExpr) interface{}

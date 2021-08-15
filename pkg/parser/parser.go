@@ -46,9 +46,20 @@ func (p *Parser) parseProgram() (*ast.Program, []error) {
 }
 
 func (p *Parser) parseStatement() (ast.Stmt, error) {
-	if p.peekMatches(1, tokentype.PRINT) {
+	nextToken := p.peek(1)
+	switch nextToken.Type {
+	case tokentype.PRINT:
 		p.advance()
 		return p.parsePrintStatement()
+	case tokentype.IF:
+		p.advance()
+		return p.parseIfStatement()
+	case tokentype.WHILE:
+		p.advance()
+		return p.parseWhileStatement()
+	case tokentype.LEFT_BRACE:
+		p.advance()
+		return p.parseBlockStatement()
 	}
 	return p.parseExpressionStatement()
 }
@@ -63,7 +74,7 @@ func (p *Parser) parsePrintStatement() (*ast.PrintStmt, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &ast.PrintStmt{Expr: printExpr}, nil
+	return &ast.PrintStmt{Expression: printExpr}, nil
 }
 
 func (p *Parser) parseExpressionStatement() (*ast.ExprStmt, error) {
@@ -76,7 +87,90 @@ func (p *Parser) parseExpressionStatement() (*ast.ExprStmt, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &ast.ExprStmt{Expr: expr}, nil
+	return &ast.ExprStmt{Expression: expr}, nil
+}
+
+func (p *Parser) parseIfStatement() (*ast.IfStmt, error) {
+	var err error
+
+	// Parse the parenthesized condition.
+	err = p.consume(tokentype.LEFT_PAREN, "Expected '(' after 'if'.")
+	if err != nil {
+		return nil, err
+	}
+	condition, err := p.parseExpression()
+	if err != nil {
+		return nil, err
+	}
+	err = p.consume(tokentype.RIGHT_PAREN, "Expected ')' after condition.")
+	if err != nil {
+		return nil, err
+	}
+
+	thenStatement, err := p.parseStatement()
+	if err != nil {
+		return nil, err
+	}
+
+	var elseStatement ast.Stmt
+	if p.peekMatches(1, tokentype.ELSE) {
+		p.advance()
+		elseStatement, err = p.parseStatement()
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		elseStatement = nil
+	}
+
+	return &ast.IfStmt{
+		Condition:     condition,
+		ThenStatement: thenStatement,
+		ElseStatement: elseStatement,
+	}, nil
+}
+
+func (p *Parser) parseWhileStatement() (*ast.WhileStmt, error) {
+	var err error
+
+	err = p.consume(tokentype.LEFT_PAREN, "Expected '(' after 'if'.")
+	if err != nil {
+		return nil, err
+	}
+	condition, err := p.parseExpression()
+	if err != nil {
+		return nil, err
+	}
+	err = p.consume(tokentype.RIGHT_PAREN, "Expected ')' after condition.")
+	if err != nil {
+		return nil, err
+	}
+
+	loopStatement, err := p.parseStatement()
+	if err != nil {
+		return nil, err
+	}
+
+	return &ast.WhileStmt{
+		Condition:     condition,
+		LoopStatement: loopStatement,
+	}, nil
+}
+
+func (p *Parser) parseBlockStatement() (*ast.BlockStmt, error) {
+	statements := make([]ast.Stmt, 0)
+	for !p.peekMatches(1, tokentype.RIGHT_BRACE) && !p.isAtEnd() {
+		statement, err := p.parseStatement()
+		if err != nil {
+			return nil, err
+		}
+		statements = append(statements, statement)
+	}
+	err := p.consume(tokentype.RIGHT_BRACE, "Expected '}' after block.")
+	if err != nil {
+		return nil, err
+	}
+	return &ast.BlockStmt{Statements: statements}, nil
 }
 
 func (p *Parser) parseExpression() (ast.Expr, error) {

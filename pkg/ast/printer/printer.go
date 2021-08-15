@@ -6,10 +6,12 @@ import (
 	"github.com/kaschnit/golox/pkg/ast"
 )
 
-type AstPrinter struct{}
+type AstPrinter struct {
+	indent int
+}
 
 func NewAstPrinter() *AstPrinter {
-	return &AstPrinter{}
+	return &AstPrinter{indent: 0}
 }
 
 func (p *AstPrinter) VisitProgram(prg *ast.Program) interface{} {
@@ -19,16 +21,59 @@ func (p *AstPrinter) VisitProgram(prg *ast.Program) interface{} {
 	return nil
 }
 
-func (p *AstPrinter) VisitPrintStmt(ps *ast.PrintStmt) interface{} {
-	fmt.Print("print ")
-	ps.Expr.Accept(p)
-	fmt.Println(";")
+func (p *AstPrinter) VisitPrintStmt(s *ast.PrintStmt) interface{} {
+	p.printTabbing()
+	fmt.Print("(print ")
+	s.Expression.Accept(p)
+	fmt.Println(");")
 	return nil
 }
 
-func (p *AstPrinter) VisitExprStmt(ps *ast.ExprStmt) interface{} {
-	ps.Expr.Accept(p)
-	fmt.Println(";")
+func (p *AstPrinter) VisitExprStmt(s *ast.ExprStmt) interface{} {
+	p.printTabbing()
+	fmt.Print("(")
+	s.Expression.Accept(p)
+	fmt.Println(");")
+	return nil
+}
+
+func (p *AstPrinter) VisitIfStmt(s *ast.IfStmt) interface{} {
+	p.printTabbing()
+	fmt.Print("if (condition ")
+	s.Condition.Accept(p)
+	fmt.Println("):")
+	p.indent++
+	s.ThenStatement.Accept(p)
+	p.indent--
+	if s.ElseStatement != nil {
+		p.indent++
+		s.ElseStatement.Accept(p)
+		p.indent--
+	}
+	return nil
+}
+
+func (p *AstPrinter) VisitWhileStmt(s *ast.WhileStmt) interface{} {
+	p.printTabbing()
+	fmt.Print("while (condition ")
+	s.Condition.Accept(p)
+	fmt.Println("):")
+	p.indent++
+	s.LoopStatement.Accept(p)
+	p.indent--
+	return nil
+}
+
+func (p *AstPrinter) VisitBlockStmt(s *ast.BlockStmt) interface{} {
+	p.printTabbing()
+	fmt.Println("{")
+	p.indent++
+	for i := 0; i < len(s.Statements); i++ {
+		s.Statements[i].Accept(p)
+	}
+	p.indent--
+	p.printTabbing()
+	fmt.Println("}")
 	return nil
 }
 
@@ -62,4 +107,10 @@ func (p *AstPrinter) VisitLiteralExpr(e *ast.LiteralExpr) interface{} {
 		fmt.Print(e.Value)
 	}
 	return nil
+}
+
+func (p *AstPrinter) printTabbing() {
+	for i := 0; i < p.indent; i++ {
+		fmt.Print("  ")
+	}
 }

@@ -37,7 +37,7 @@ func main() {
 			// Parse the input.
 			parser := parser.NewParser(tokens)
 			programAst, errs := parser.Parse()
-			if len(errs) == 0 {
+			if len(errs) > 0 {
 				for i := 0; i < len(errs); i++ {
 					fmt.Println(errs[i])
 				}

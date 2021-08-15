@@ -287,7 +287,7 @@ func TestParsePrintStatement_Basic(t *testing.T) {
 	assert.Nil(t, err)
 
 	stmt := assertIsPrintStmt(t, tree)
-	expr := assertIsBinaryExpr(t, stmt.Expr)
+	expr := assertIsBinaryExpr(t, stmt.Expression)
 	assertBinaryExprOfLiterals(t, expr, lhsValue, expectedOp, rhsValue)
 }
 
@@ -333,7 +333,7 @@ func TestParseExpressionStmt_Basic(t *testing.T) {
 	assert.Nil(t, err)
 
 	stmt := assertIsExprStmt(t, tree)
-	expr := assertIsBinaryExpr(t, stmt.Expr)
+	expr := assertIsBinaryExpr(t, stmt.Expression)
 	assertBinaryExprOfLiterals(t, expr, lhsValue, expectedOp, rhsValue)
 }
 
