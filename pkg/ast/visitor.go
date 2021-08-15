@@ -4,6 +4,9 @@ type Visitable interface {
 	Accept(v AstVisitor) interface{}
 }
 type AstVisitor interface {
+	VisitProgram(*Program) interface{}
+	VisitPrintStmt(*PrintStmt) interface{}
+	VisitExprStmt(*ExprStmt) interface{}
 	VisitBinaryExpr(*BinaryExpr) interface{}
 	VisitUnaryExpr(*UnaryExpr) interface{}
 	VisitGroupingExpr(*GroupingExpr) interface{}

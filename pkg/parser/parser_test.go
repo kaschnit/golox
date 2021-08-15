@@ -80,6 +80,12 @@ func assertIsUnaryExpr(t *testing.T, expr ast.Expr) *ast.UnaryExpr {
 	return tree
 }
 
+func assertIsGroupingExpr(t *testing.T, expr ast.Expr) *ast.GroupingExpr {
+	tree, ok := expr.(*ast.GroupingExpr)
+	assert.True(t, ok)
+	return tree
+}
+
 func assertIsLiteralExpr(t *testing.T, expr ast.Expr) *ast.LiteralExpr {
 	tree, ok := expr.(*ast.LiteralExpr)
 	assert.True(t, ok)
@@ -148,6 +154,32 @@ func testUnaryExpression(t *testing.T, expectedOp *token.Token) {
 	assertUnaryExpressionOfLiteral(t, expr, expectedOp, rhsValue)
 }
 
+func TestParse_MissingEOF(t *testing.T) {
+	// print "lhsToken" +"rhsToken";
+	parser := NewParser([]*token.Token{
+		printToken(), strToken("lhsVaue"), symToken(tokentype.PLUS, "+"), strToken("rhsValue"),
+		symToken(tokentype.SEMICOLON, ";"),
+	})
+	program, errs := parser.Parse()
+	assert.Nil(t, program)
+	assert.NotEmpty(t, errs)
+}
+
+func TestParse_EmptyMissingEOF(t *testing.T) {
+	parser := NewParser([]*token.Token{})
+	program, errs := parser.Parse()
+	assert.Nil(t, program)
+	assert.NotEmpty(t, errs)
+}
+
+func TestParse_OnlyEOF(t *testing.T) {
+	// <EOF>
+	parser := NewParser([]*token.Token{eofToken()})
+	program, errs := parser.Parse()
+	assert.Empty(t, errs)
+	assert.Empty(t, program.Statements)
+}
+
 func TestParseExpression_Equality(t *testing.T) {
 	testBinaryExpressionWithLiterals(t, symToken(tokentype.BANG_EQUAL, "!="))
 	testBinaryExpressionWithLiterals(t, symToken(tokentype.EQUAL_EQUAL, "=="))
@@ -187,8 +219,9 @@ func TestParseExpression_Primary_AsUnaryInParentheses(t *testing.T) {
 	tree, err := parser.parseExpression()
 	assert.Nil(t, err)
 
-	expr := assertIsUnaryExpr(t, tree)
-	assertUnaryExpressionOfLiteral(t, expr, expectedOp, rhsValue)
+	groupExpr := assertIsGroupingExpr(t, tree)
+	unaryExpr := assertIsUnaryExpr(t, groupExpr.Expression)
+	assertUnaryExpressionOfLiteral(t, unaryExpr, expectedOp, rhsValue)
 }
 
 func TestParseExpression_Primary_MissingClosingParentheses(t *testing.T) {
@@ -240,7 +273,7 @@ func TestParseExpression_MissingRhs(t *testing.T) {
 	assert.Error(t, err)
 }
 
-func TestPrintStatement_Basic(t *testing.T) {
+func TestParsePrintStatement_Basic(t *testing.T) {
 	lhsValue := "lhsToken"
 	rhsValue := "rhsToken"
 	expectedOp := symToken(tokentype.PLUS, "+")
@@ -258,7 +291,7 @@ func TestPrintStatement_Basic(t *testing.T) {
 	assertBinaryExprOfLiterals(t, expr, lhsValue, expectedOp, rhsValue)
 }
 
-func TestPrintStatement_BadExpression(t *testing.T) {
+func TestParsePrintStatement_BadExpression(t *testing.T) {
 	lhsValue := "lhsToken"
 	expectedOp := symToken(tokentype.PLUS, "+")
 
@@ -272,7 +305,7 @@ func TestPrintStatement_BadExpression(t *testing.T) {
 	assert.Error(t, err)
 }
 
-func TestPrintStatement_MissingSemicolon(t *testing.T) {
+func TestParsePrintStatement_MissingSemicolon(t *testing.T) {
 	lhsValue := "lhsToken"
 	rhsValue := "rhsToken"
 	expectedOp := symToken(tokentype.PLUS, "+")
@@ -286,7 +319,7 @@ func TestPrintStatement_MissingSemicolon(t *testing.T) {
 	assert.Error(t, err)
 }
 
-func TestExpressionStmt_Basic(t *testing.T) {
+func TestParseExpressionStmt_Basic(t *testing.T) {
 	lhsValue := "lhsToken"
 	rhsValue := "rhsToken"
 	expectedOp := symToken(tokentype.PLUS, "+")
@@ -304,7 +337,7 @@ func TestExpressionStmt_Basic(t *testing.T) {
 	assertBinaryExprOfLiterals(t, expr, lhsValue, expectedOp, rhsValue)
 }
 
-func TestExpressionStmt_BadExpression(t *testing.T) {
+func TestParseExpressionStmt_BadExpression(t *testing.T) {
 	lhsValue := "lhsToken"
 	expectedOp := symToken(tokentype.PLUS, "+")
 
@@ -317,7 +350,7 @@ func TestExpressionStmt_BadExpression(t *testing.T) {
 	assert.Error(t, err)
 }
 
-func TestExpressionStmt_MissingSemiclon(t *testing.T) {
+func TestParseExpressionStmt_MissingSemicolon(t *testing.T) {
 	lhsValue := "lhsToken"
 	rhsValue := "rhsToken"
 	expectedOp := symToken(tokentype.PLUS, "+")

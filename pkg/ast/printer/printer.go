@@ -2,21 +2,38 @@ package printer
 
 import (
 	"fmt"
-	"io"
 
 	"github.com/kaschnit/golox/pkg/ast"
 )
 
-type AstPrinter struct {
-	writer *io.Writer
-}
+type AstPrinter struct{}
 
 func NewAstPrinter() *AstPrinter {
 	return &AstPrinter{}
 }
 
+func (p *AstPrinter) VisitProgram(prg *ast.Program) interface{} {
+	for i := 0; i < len(prg.Statements); i++ {
+		prg.Statements[i].Accept(p)
+	}
+	return nil
+}
+
+func (p *AstPrinter) VisitPrintStmt(ps *ast.PrintStmt) interface{} {
+	fmt.Print("print ")
+	ps.Expr.Accept(p)
+	fmt.Println(";")
+	return nil
+}
+
+func (p *AstPrinter) VisitExprStmt(ps *ast.ExprStmt) interface{} {
+	ps.Expr.Accept(p)
+	fmt.Println(";")
+	return nil
+}
+
 func (p *AstPrinter) VisitBinaryExpr(e *ast.BinaryExpr) interface{} {
-	fmt.Print(fmt.Sprintf("(%s ", e.Operator.Lexeme))
+	fmt.Printf("(%s ", e.Operator.Lexeme)
 	e.Left.Accept(p)
 	fmt.Print(" ")
 	e.Right.Accept(p)
@@ -25,7 +42,7 @@ func (p *AstPrinter) VisitBinaryExpr(e *ast.BinaryExpr) interface{} {
 }
 
 func (p *AstPrinter) VisitUnaryExpr(e *ast.UnaryExpr) interface{} {
-	fmt.Print(fmt.Sprintf("(%s ", e.Operator.Lexeme))
+	fmt.Printf("(%s ", e.Operator.Lexeme)
 	e.Right.Accept(p)
 	fmt.Print(")")
 	return nil

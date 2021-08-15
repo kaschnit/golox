@@ -18,12 +18,15 @@ func main() {
 		for {
 			fmt.Print("> ")
 			line, _ := reader.ReadString('\n')
+
 			scanner := scanner.NewScanner(line)
-			tokens, _ := scanner.ScanAllTokens()
+			tokens, errs := scanner.ScanAllTokens()
+			for i := 0; i < len(errs); i++ {
+				fmt.Println(errs[i])
+			}
 			for i := 0; i < len(tokens); i++ {
 				fmt.Println(tokens[i])
 			}
-
 		}
 	}
 }

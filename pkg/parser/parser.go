@@ -9,7 +9,6 @@ import (
 
 type Parser struct {
 	tokens  []*token.Token
-	errors  []error
 	start   int
 	current int
 }
@@ -19,28 +18,31 @@ func NewParser(tokens []*token.Token) *Parser {
 		tokens:  tokens,
 		start:   0,
 		current: 0,
-		errors:  make([]error, 0),
 	}
 }
 
-func (p *Parser) Parse() *ast.Program {
-	if numTokens := len(p.tokens); numTokens > 0 && p.tokens[numTokens-1].Type != tokentype.EOF {
-		p.errors = append(p.errors, loxerr.NewLoxErrorAtToken(p.tokens[numTokens-1], "Expected EOF."))
+func (p *Parser) Parse() (*ast.Program, []error) {
+	if numTokens := len(p.tokens); numTokens == 0 {
+		return nil, []error{loxerr.NewLoxErrorAtLine(0, "Expected EOF.")}
+	} else if p.tokens[numTokens-1].Type != tokentype.EOF {
+		return nil, []error{loxerr.NewLoxErrorAtToken(p.tokens[numTokens-1], "Expected EOF.")}
 	}
 	return p.parseProgram()
 }
 
-func (p *Parser) parseProgram() *ast.Program {
+func (p *Parser) parseProgram() (*ast.Program, []error) {
+	errors := make([]error, 0)
 	statements := make([]ast.Stmt, 0)
 	for !p.isAtEnd() {
 		stmt, err := p.parseStatement()
 		if err != nil {
-			p.errors = append(p.errors, err)
+			errors = append(errors, err)
+			p.synchronize()
 		} else {
 			statements = append(statements, stmt)
 		}
 	}
-	return &ast.Program{Statements: statements}
+	return &ast.Program{Statements: statements}, errors
 }
 
 func (p *Parser) parseStatement() (ast.Stmt, error) {
@@ -188,7 +190,7 @@ func (p *Parser) parsePrimary() (ast.Expr, error) {
 		}
 	} else if p.peekMatches(1, tokentype.LEFT_PAREN) {
 		p.advance()
-		result, err := p.parseExpression()
+		expr, err := p.parseExpression()
 		if err != nil {
 			return nil, err
 		}
@@ -197,7 +199,7 @@ func (p *Parser) parsePrimary() (ast.Expr, error) {
 		if err != nil {
 			return nil, err
 		}
-		return result, nil
+		return &ast.GroupingExpr{Expression: expr}, nil
 	} else {
 		return nil, loxerr.NewLoxErrorAtToken(p.peek(1), "Expected expression.")
 	}
@@ -235,4 +237,32 @@ func (p *Parser) peek(lookahead int) *token.Token {
 
 func (p *Parser) isAtEnd() bool {
 	return p.peek(1).Type == tokentype.EOF
+}
+
+func (p *Parser) synchronize() {
+	if p.peekMatches(1, tokentype.SEMICOLON) {
+		return
+	}
+
+	for !p.isAtEnd() {
+		switch p.peek(1).Type {
+		case tokentype.CLASS:
+			fallthrough
+		case tokentype.FUN:
+			fallthrough
+		case tokentype.VAR:
+			fallthrough
+		case tokentype.FOR:
+			fallthrough
+		case tokentype.IF:
+			fallthrough
+		case tokentype.WHILE:
+			fallthrough
+		case tokentype.PRINT:
+			fallthrough
+		case tokentype.RETURN:
+			return
+		}
+		p.current++
+	}
 }

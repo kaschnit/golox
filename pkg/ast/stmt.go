@@ -9,8 +9,7 @@ type PrintStmt struct {
 }
 
 func (s *PrintStmt) Accept(v AstVisitor) interface{} {
-	// TODO implement
-	return nil
+	return v.VisitPrintStmt(s)
 }
 
 type ExprStmt struct {
@@ -18,6 +17,5 @@ type ExprStmt struct {
 }
 
 func (s *ExprStmt) Accept(v AstVisitor) interface{} {
-	// TODO implement
-	return nil
+	return v.VisitExprStmt(s)
 }
