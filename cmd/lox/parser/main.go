@@ -1,3 +1,4 @@
+// Entrypoint for the Lox parser.
 package main
 
 import (
@@ -23,20 +24,27 @@ func main() {
 			fmt.Print("> ")
 			line, _ := reader.ReadString('\n')
 
+			// Tokenize the input.
 			scanner := scanner.NewScanner(line)
-			tokens, scanErrs := scanner.ScanAllTokens()
-			for i := 0; i < len(scanErrs); i++ {
-				fmt.Println(scanErrs[i])
-			}
-
-			parser := parser.NewParser(tokens)
-			programAst, parseErrs := parser.Parse()
-			if len(scanErrs) == 0 {
-				for i := 0; i < len(parseErrs); i++ {
-					fmt.Println(parseErrs[i])
+			tokens, errs := scanner.ScanAllTokens()
+			if len(errs) > 0 {
+				for i := 0; i < len(errs); i++ {
+					fmt.Println(errs[i])
 				}
+				continue
 			}
 
+			// Parse the input.
+			parser := parser.NewParser(tokens)
+			programAst, errs := parser.Parse()
+			if len(errs) == 0 {
+				for i := 0; i < len(errs); i++ {
+					fmt.Println(errs[i])
+				}
+				continue
+			}
+
+			// Print the AST.
 			programAst.Accept(astPrinter)
 		}
 	}
