@@ -66,8 +66,9 @@ func (p *Parser) parseStatement() (ast.Stmt, error) {
 	case tokentype.LEFT_BRACE:
 		p.advance()
 		return p.parseBlockStatement()
+	default:
+		return p.parseExpressionStatement()
 	}
-	return p.parseExpressionStatement()
 }
 
 func (p *Parser) parsePrintStatement() (*ast.PrintStmt, error) {
@@ -185,8 +186,35 @@ func (p *Parser) parseBlockStatement() (*ast.BlockStmt, error) {
 }
 
 func (p *Parser) parseVarStatement() (*ast.VarStmt, error) {
-	// TODO
-	return nil, nil
+	// LHS of the var declaration.
+	lhsToken := p.peek(1)
+	if lhsToken.Type != tokentype.IDENTIFIER {
+		return nil, loxerr.NewLoxErrorAtToken(p.peek(1), "Expected identifier after 'var'.")
+	}
+	p.advance()
+
+	var rhs ast.Expr = nil
+	var err error = nil
+
+	// Optional RHS of the declaration.
+	if p.peek(1).Type == tokentype.EQUAL {
+		p.advance()
+		rhs, err = p.parseExpression()
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	// Declaration is a statement that must be terminated with a semicolon.
+	err = p.consume(tokentype.SEMICOLON, "Expected ';'.")
+	if err != nil {
+		return nil, err
+	}
+
+	return &ast.VarStmt{
+		Left:  lhsToken,
+		Right: rhs,
+	}, nil
 }
 
 func (p *Parser) parseExpression() (ast.Expr, error) {

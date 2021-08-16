@@ -79,7 +79,12 @@ func (p *AstPrinter) VisitBlockStmt(s *ast.BlockStmt) interface{} {
 
 func (p *AstPrinter) VisitVarStmt(s *ast.VarStmt) interface{} {
 	p.printTabbing()
-	fmt.Print("(var ")
+	fmt.Printf("(var %s = ", s.Left.Lexeme)
+	if s.Right != nil {
+		s.Right.Accept(p)
+	} else {
+		fmt.Print("nil")
+	}
 	fmt.Println(");")
 	return nil
 }

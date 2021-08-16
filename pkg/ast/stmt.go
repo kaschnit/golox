@@ -1,5 +1,7 @@
 package ast
 
+import "github.com/kaschnit/golox/pkg/token"
+
 type Stmt interface {
 	Accept(v AstVisitor) interface{}
 }
@@ -48,6 +50,8 @@ func (s *BlockStmt) Accept(v AstVisitor) interface{} {
 }
 
 type VarStmt struct {
+	Left  *token.Token
+	Right Expr
 }
 
 func (s *VarStmt) Accept(v AstVisitor) interface{} {
