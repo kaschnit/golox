@@ -51,7 +51,13 @@ func (s *Scanner) ScanToken() (*token.Token, error) {
 	}
 
 	s.start = s.current
-	return s.scanToken()
+	result, err := s.scanToken()
+	for err == nil && result == nil {
+		s.start = s.current
+		result, err = s.scanToken()
+	}
+
+	return result, err
 }
 
 func (s *Scanner) scanToken() (*token.Token, error) {
@@ -94,7 +100,7 @@ func (s *Scanner) scanToken() (*token.Token, error) {
 	case '/':
 		if s.peek(1) == '/' {
 			s.throwAwayLine()
-			return s.scanToken()
+			return nil, nil
 		} else {
 			return s.createToken(tokentype.SLASH), nil
 		}
@@ -137,7 +143,7 @@ func (s *Scanner) scanToken() (*token.Token, error) {
 		fallthrough
 	case '\t':
 		s.start = s.current
-		return s.scanToken()
+		return nil, nil
 
 	// STrings
 	case '"':
