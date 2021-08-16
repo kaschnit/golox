@@ -57,6 +57,12 @@ func (p *Parser) parseStatement() (ast.Stmt, error) {
 	case tokentype.WHILE:
 		p.advance()
 		return p.parseWhileStatement()
+	case tokentype.FOR:
+		p.advance()
+		return p.parseForStatement()
+	case tokentype.VAR:
+		p.advance()
+		return p.parseVarStatement()
 	case tokentype.LEFT_BRACE:
 		p.advance()
 		return p.parseBlockStatement()
@@ -157,6 +163,11 @@ func (p *Parser) parseWhileStatement() (*ast.WhileStmt, error) {
 	}, nil
 }
 
+func (p *Parser) parseForStatement() (*ast.WhileStmt, error) {
+	// TODO
+	return nil, nil
+}
+
 func (p *Parser) parseBlockStatement() (*ast.BlockStmt, error) {
 	statements := make([]ast.Stmt, 0)
 	for !p.peekMatches(1, tokentype.RIGHT_BRACE) && !p.isAtEnd() {
@@ -171,6 +182,11 @@ func (p *Parser) parseBlockStatement() (*ast.BlockStmt, error) {
 		return nil, err
 	}
 	return &ast.BlockStmt{Statements: statements}, nil
+}
+
+func (p *Parser) parseVarStatement() (*ast.VarStmt, error) {
+	// TODO
+	return nil, nil
 }
 
 func (p *Parser) parseExpression() (ast.Expr, error) {

@@ -77,6 +77,13 @@ func (p *AstPrinter) VisitBlockStmt(s *ast.BlockStmt) interface{} {
 	return nil
 }
 
+func (p *AstPrinter) VisitVarStmt(s *ast.VarStmt) interface{} {
+	p.printTabbing()
+	fmt.Print("(var ")
+	fmt.Println(");")
+	return nil
+}
+
 func (p *AstPrinter) VisitBinaryExpr(e *ast.BinaryExpr) interface{} {
 	fmt.Printf("(%s ", e.Operator.Lexeme)
 	e.Left.Accept(p)

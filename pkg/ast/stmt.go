@@ -46,3 +46,10 @@ type BlockStmt struct {
 func (s *BlockStmt) Accept(v AstVisitor) interface{} {
 	return v.VisitBlockStmt(s)
 }
+
+type VarStmt struct {
+}
+
+func (s *VarStmt) Accept(v AstVisitor) interface{} {
+	return v.VisitVarStmt(s)
+}

@@ -10,6 +10,7 @@ type AstVisitor interface {
 	VisitIfStmt(*IfStmt) interface{}
 	VisitWhileStmt(*WhileStmt) interface{}
 	VisitBlockStmt(*BlockStmt) interface{}
+	VisitVarStmt(*VarStmt) interface{}
 	VisitBinaryExpr(*BinaryExpr) interface{}
 	VisitUnaryExpr(*UnaryExpr) interface{}
 	VisitGroupingExpr(*GroupingExpr) interface{}
