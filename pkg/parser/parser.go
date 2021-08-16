@@ -400,7 +400,8 @@ func (p *Parser) synchronize() {
 			fallthrough
 		case tokentype.RETURN:
 			return
+		default:
+			p.current++
 		}
-		p.current++
 	}
 }
