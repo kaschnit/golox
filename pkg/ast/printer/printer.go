@@ -103,6 +103,8 @@ func (p *AstPrinter) VisitGroupingExpr(e *ast.GroupingExpr) interface{} {
 func (p *AstPrinter) VisitLiteralExpr(e *ast.LiteralExpr) interface{} {
 	if e.Value == nil {
 		fmt.Print("nil")
+	} else if strVal, ok := e.Value.(string); ok {
+		fmt.Printf(`"%s"`, strVal)
 	} else {
 		fmt.Print(e.Value)
 	}
