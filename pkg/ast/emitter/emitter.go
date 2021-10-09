@@ -6,7 +6,7 @@ import (
 
 type AstEmitter struct{}
 
-func NewAstInterpreter() *AstEmitter {
+func NewAstEmitter() *AstEmitter {
 	return &AstEmitter{}
 }
 
