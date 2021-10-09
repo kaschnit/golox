@@ -160,7 +160,7 @@ func (p *Parser) parseIfStatement() (*ast.IfStmt, error) {
 func (p *Parser) parseWhileStatement() (*ast.WhileStmt, error) {
 	var err error
 
-	err = p.consume(tokentype.LEFT_PAREN, "Expected '(' after 'if'.")
+	err = p.consume(tokentype.LEFT_PAREN, "Expected '(' after 'while'.")
 	if err != nil {
 		return nil, err
 	}
@@ -185,9 +185,100 @@ func (p *Parser) parseWhileStatement() (*ast.WhileStmt, error) {
 }
 
 // Parse a for loop statement.
-func (p *Parser) parseForStatement() (*ast.WhileStmt, error) {
-	// TODO
-	return nil, nil
+// Desugars the for loop to a while loop. The following two are equivalent:
+// 	1. for (int i = 0; i < 5; i++) { doSomething() }
+// 	2. { int i = 0; while (i < 5) { { doSomething(); } i++ } }
+// The while loop is placed inside its own block. The initializer is placed at the beginning
+// of this block. The loop body is placed inside a nested block, and the increment is placed
+// after this nested block.
+func (p *Parser) parseForStatement() (ast.Stmt, error) {
+	var err error
+	var nextToken *token.Token
+
+	err = p.consume(tokentype.LEFT_PAREN, "Expected '(' after 'for'.")
+	if err != nil {
+		return nil, err
+	}
+
+	// Parse the initializer statement, if there is one.
+	// It can be a var declaration or an expression statement.
+	nextToken = p.peek(1)
+	var initializer ast.Stmt
+	if nextToken.Type == tokentype.SEMICOLON {
+		p.advance()
+	} else if nextToken.Type == tokentype.VAR {
+		initializer, err = p.parseVarStatement()
+	} else {
+		initializer, err = p.parseExpressionStatement()
+	}
+	if err != nil {
+		return nil, err
+	}
+
+	// Parse the condition, if there is one.
+	nextToken = p.peek(1)
+	var condition ast.Expr
+	if nextToken.Type == tokentype.SEMICOLON {
+		condition = &ast.LiteralExpr{Value: true}
+		p.advance()
+	} else {
+		condition, err = p.parseExpression()
+	}
+	if err != nil {
+		return nil, err
+	}
+
+	// Needs to be a ';' after the condition.
+	err = p.consume(tokentype.SEMICOLON, "Expect ';' after loop condition.")
+	if err != nil {
+		return nil, err
+	}
+
+	// Parse the increment, if there is one.
+	nextToken = p.peek(1)
+	var increment ast.Expr
+	if nextToken.Type != tokentype.RIGHT_PAREN {
+		increment, err = p.parseExpression()
+	}
+	if err != nil {
+		return nil, err
+	}
+
+	// Needs to be a ')' before the loop body.
+	err = p.consume(tokentype.RIGHT_PAREN, "Expected ')' after loop increment.")
+	if err != nil {
+		return nil, err
+	}
+
+	// Parse the loop body.
+	loopBody, err := p.parseStatement()
+	if err != nil {
+		return nil, err
+	}
+
+	// If there's an increment, place it at the end of the loop body.
+	if increment != nil {
+		loopBody = &ast.BlockStmt{
+			Statements: []ast.Stmt{loopBody, increment},
+		}
+	}
+
+	// Construct the while loop from the parsed expressions and statement.
+	var result ast.Stmt
+	result = &ast.WhileStmt{
+		Condition:     condition,
+		LoopStatement: loopBody,
+	}
+
+	// If there's an initializer, wrap the while statement in a block
+	// with the initializer then the while loop.
+	if initializer != nil {
+		result = &ast.BlockStmt{
+			Statements: []ast.Stmt{initializer, result},
+		}
+	}
+
+	return result, nil
 }
 
 // Parse a block statement.
