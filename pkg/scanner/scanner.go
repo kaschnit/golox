@@ -11,14 +11,27 @@ import (
 )
 
 type Scanner struct {
-	source   []rune
+	// The source code to tokenize.
+	source []rune
+
+	// Whether or not any errors have been encountered while scanning so far.
 	hasError bool
+
+	// Tracks whether the entire input, including EOF, has already been scanned.
+	// This prevents scannign the same EOF at the end of the input repeatedly.
 	finished bool
-	start    int
-	current  int
-	line     int
+
+	// Points to the start of the current lexeme currently being tokenized.
+	start int
+
+	// Points to the current character of the lexeme currently being tokenized.
+	current int
+
+	// Line number of the lexeme being tokenized.
+	line int
 }
 
+// Create a Scanner instance.
 func NewScanner(source string) *Scanner {
 	return &Scanner{
 		source:   []rune(source),
@@ -30,6 +43,7 @@ func NewScanner(source string) *Scanner {
 	}
 }
 
+// Reset the scanner to initial state.
 func (s *Scanner) Reset() {
 	s.hasError = false
 	s.finished = false
@@ -38,11 +52,14 @@ func (s *Scanner) Reset() {
 	s.line = 1
 }
 
+// Tokenize the remaining input that has not been scanned yet.
 func (s *Scanner) ScanAllTokens() ([]*token.Token, []error) {
 	tokens := make([]*token.Token, 0)
 	errors := make([]error, 0)
 	for !s.finished {
 		nextToken, err := s.ScanToken()
+
+		// Continue scanning even if an error is encountered.
 		if err != nil {
 			errors = append(errors, err)
 		} else {
@@ -53,6 +70,7 @@ func (s *Scanner) ScanAllTokens() ([]*token.Token, []error) {
 	return tokens, errors
 }
 
+// Scan the next token.
 func (s *Scanner) ScanToken() (*token.Token, error) {
 	if s.finished {
 		return nil, loxerr.NewLoxInternalError("Scanner has already reached EOF")
@@ -60,6 +78,9 @@ func (s *Scanner) ScanToken() (*token.Token, error) {
 
 	s.start = s.current
 	result, err := s.scanToken()
+
+	// Keep moving on if there's no errors but no token is returned.
+	// Do this to handle whitespace that won't matter after tokenization.
 	for err == nil && result == nil {
 		s.start = s.current
 		result, err = s.scanToken()
@@ -68,6 +89,8 @@ func (s *Scanner) ScanToken() (*token.Token, error) {
 	return result, err
 }
 
+// Helper for scanning one token.
+// Returns nil for token if a whitespace is found.
 func (s *Scanner) scanToken() (*token.Token, error) {
 	if s.isAtEnd() {
 		s.finished = true
@@ -153,7 +176,7 @@ func (s *Scanner) scanToken() (*token.Token, error) {
 		s.start = s.current
 		return nil, nil
 
-	// STrings
+	// Strings
 	case '"':
 		return s.scanString()
 
@@ -189,7 +212,7 @@ func (s *Scanner) scanString() (*token.Token, error) {
 	return &token.Token{
 		Type:    tokentype.STRING,
 		Lexeme:  s.currentLexeme(),
-		Literal: s.subLexeme(1, 1),
+		Literal: s.subCurrentLexeme(1, 1),
 		Line:    s.line,
 	}, nil
 }
@@ -241,6 +264,7 @@ func (s *Scanner) throwAwayLine() {
 	s.start = s.current
 }
 
+// Helper for creating a token based on the scanner's current state.
 func (s *Scanner) createToken(tokenType tokentype.TokenType) *token.Token {
 	return &token.Token{
 		Type:    tokenType,
@@ -250,14 +274,17 @@ func (s *Scanner) createToken(tokenType tokentype.TokenType) *token.Token {
 	}
 }
 
+// Get the lexeme that the scanner is currently pointing to.
 func (s *Scanner) currentLexeme() string {
 	return string(s.source[s.start:s.current])
 }
 
-func (s *Scanner) subLexeme(beginOffset int, endOffset int) string {
+// Get a substring of the lexeme that the scanner is currently pointing to.
+func (s *Scanner) subCurrentLexeme(beginOffset int, endOffset int) string {
 	return string(s.source[s.start+beginOffset : s.current-endOffset])
 }
 
+// Get the character that is lookahead in front of the current pointer.
 func (s *Scanner) peek(lookahead int) rune {
 	// Return null char if the scanner is at the end of input
 	if s.isAtEnd() {
@@ -266,12 +293,14 @@ func (s *Scanner) peek(lookahead int) rune {
 	return s.source[s.current+lookahead-1]
 }
 
+// Advance the current pointer to the next lexeme.
 func (s *Scanner) advance() rune {
 	result := s.peek(1)
 	s.current++
 	return result
 }
 
+// Whether or not the scanner has tokenized all input.
 func (s *Scanner) isAtEnd() bool {
 	return s.current >= len(s.source)
 }

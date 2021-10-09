@@ -8,11 +8,17 @@ import (
 )
 
 type Parser struct {
-	tokens  []*token.Token
-	start   int
+	// The tokenized source code to be parsed.
+	tokens []*token.Token
+
+	// The start of the sequence of tokens currently being parsed.
+	start int
+
+	// The current token in the sequence of tokens currently being parsed.
 	current int
 }
 
+// Create a Parser instance.
 func NewParser(tokens []*token.Token) *Parser {
 	return &Parser{
 		tokens:  tokens,
@@ -21,11 +27,14 @@ func NewParser(tokens []*token.Token) *Parser {
 	}
 }
 
+// Reset the parser to the initial state.
 func (p *Parser) Reset() {
 	p.start = 0
 	p.current = 0
 }
 
+// Parse the entire tokenized source code, converting it to an AST
+// with a root of type ast.Program.
 func (p *Parser) Parse() (*ast.Program, []error) {
 	if numTokens := len(p.tokens); numTokens == 0 {
 		return nil, []error{loxerr.NewLoxErrorAtLine(0, "Expected EOF.")}
@@ -35,6 +44,7 @@ func (p *Parser) Parse() (*ast.Program, []error) {
 	return p.parseProgram()
 }
 
+// Parse a program, which is the root of the AST.
 func (p *Parser) parseProgram() (*ast.Program, []error) {
 	errors := make([]error, 0)
 	statements := make([]ast.Stmt, 0)
@@ -50,6 +60,7 @@ func (p *Parser) parseProgram() (*ast.Program, []error) {
 	return &ast.Program{Statements: statements}, errors
 }
 
+// Parse a statement with the type of statement based on the next token.
 func (p *Parser) parseStatement() (ast.Stmt, error) {
 	nextToken := p.peek(1)
 	switch nextToken.Type {
@@ -76,6 +87,7 @@ func (p *Parser) parseStatement() (ast.Stmt, error) {
 	}
 }
 
+// Parse a print statement.
 func (p *Parser) parsePrintStatement() (*ast.PrintStmt, error) {
 	printExpr, err := p.parseExpression()
 	if err != nil {
@@ -89,6 +101,7 @@ func (p *Parser) parsePrintStatement() (*ast.PrintStmt, error) {
 	return &ast.PrintStmt{Expression: printExpr}, nil
 }
 
+// Parse an expression statement.
 func (p *Parser) parseExpressionStatement() (*ast.ExprStmt, error) {
 	expr, err := p.parseExpression()
 	if err != nil {
@@ -102,6 +115,7 @@ func (p *Parser) parseExpressionStatement() (*ast.ExprStmt, error) {
 	return &ast.ExprStmt{Expression: expr}, nil
 }
 
+// Parse an if statement.
 func (p *Parser) parseIfStatement() (*ast.IfStmt, error) {
 	var err error
 
@@ -142,6 +156,7 @@ func (p *Parser) parseIfStatement() (*ast.IfStmt, error) {
 	}, nil
 }
 
+// Parse a while loop statement.
 func (p *Parser) parseWhileStatement() (*ast.WhileStmt, error) {
 	var err error
 
@@ -169,11 +184,13 @@ func (p *Parser) parseWhileStatement() (*ast.WhileStmt, error) {
 	}, nil
 }
 
+// Parse a for loop statement.
 func (p *Parser) parseForStatement() (*ast.WhileStmt, error) {
 	// TODO
 	return nil, nil
 }
 
+// Parse a block statement.
 func (p *Parser) parseBlockStatement() (*ast.BlockStmt, error) {
 	statements := make([]ast.Stmt, 0)
 	for !p.peekMatches(1, tokentype.RIGHT_BRACE) && !p.isAtEnd() {
@@ -190,6 +207,7 @@ func (p *Parser) parseBlockStatement() (*ast.BlockStmt, error) {
 	return &ast.BlockStmt{Statements: statements}, nil
 }
 
+// Parse a var statement.
 func (p *Parser) parseVarStatement() (*ast.VarStmt, error) {
 	// LHS of the var declaration.
 	lhsToken := p.peek(1)
@@ -222,10 +240,12 @@ func (p *Parser) parseVarStatement() (*ast.VarStmt, error) {
 	}, nil
 }
 
+// Parse an expression.
 func (p *Parser) parseExpression() (ast.Expr, error) {
 	return p.parseEquality()
 }
 
+// Parse an equality expression.
 func (p *Parser) parseEquality() (ast.Expr, error) {
 	expr, err := p.parseComparison()
 	if err != nil {
@@ -244,6 +264,7 @@ func (p *Parser) parseEquality() (ast.Expr, error) {
 	return expr, nil
 }
 
+// Parse a comparison expression.
 func (p *Parser) parseComparison() (ast.Expr, error) {
 	expr, err := p.parseTerm()
 	if err != nil {
@@ -266,6 +287,7 @@ func (p *Parser) parseComparison() (ast.Expr, error) {
 	return expr, nil
 }
 
+// Parse a term expression.
 func (p *Parser) parseTerm() (ast.Expr, error) {
 	expr, err := p.parseFactor()
 	if err != nil {
@@ -283,6 +305,7 @@ func (p *Parser) parseTerm() (ast.Expr, error) {
 	return expr, nil
 }
 
+// Parse a factor expression.
 func (p *Parser) parseFactor() (ast.Expr, error) {
 	expr, err := p.parseUnary()
 	if err != nil {
@@ -300,6 +323,7 @@ func (p *Parser) parseFactor() (ast.Expr, error) {
 	return expr, nil
 }
 
+// Parse a unary expression.
 func (p *Parser) parseUnary() (ast.Expr, error) {
 	if p.peekMatches(1, tokentype.BANG, tokentype.MINUS) {
 		operator := p.advance()
@@ -315,6 +339,7 @@ func (p *Parser) parseUnary() (ast.Expr, error) {
 	return p.parsePrimary()
 }
 
+// Parse a primary expression.
 func (p *Parser) parsePrimary() (ast.Expr, error) {
 	matchTokens := []tokentype.TokenType{
 		tokentype.NUMBER, tokentype.STRING,
@@ -348,6 +373,7 @@ func (p *Parser) parsePrimary() (ast.Expr, error) {
 	}
 }
 
+// Advance the current pointer to the next token if it matches typeToMatch.
 func (p *Parser) consume(typeToMatch tokentype.TokenType, errorMessage string) error {
 	nextToken := p.peek(1)
 	if nextToken.Type == typeToMatch {
@@ -357,6 +383,7 @@ func (p *Parser) consume(typeToMatch tokentype.TokenType, errorMessage string) e
 	return loxerr.NewLoxErrorAtToken(nextToken, errorMessage)
 }
 
+// Advance the current pointer to the next token.
 func (p *Parser) advance() *token.Token {
 	result := p.peek(1)
 	if !p.isAtEnd() {
@@ -365,6 +392,8 @@ func (p *Parser) advance() *token.Token {
 	return result
 }
 
+// Whether or not the token that is lookahead in front of the current token matches
+// any of the provided TokenType items.
 func (p *Parser) peekMatches(lookahead int, tokenTypes ...tokentype.TokenType) bool {
 	for i := 0; i < len(tokenTypes); i++ {
 		if p.peek(lookahead).Type == tokenTypes[i] {
@@ -374,14 +403,18 @@ func (p *Parser) peekMatches(lookahead int, tokenTypes ...tokentype.TokenType) b
 	return false
 }
 
+// Get the token that is lookahead in front of the current token.
 func (p *Parser) peek(lookahead int) *token.Token {
 	return p.tokens[p.current+lookahead-1]
 }
 
+// Whether the parser is at the end of input.
 func (p *Parser) isAtEnd() bool {
 	return p.peek(1).Type == tokentype.EOF
 }
 
+// Move the token pointer to the next statement.
+// This should be called after handling an error.
 func (p *Parser) synchronize() {
 	if p.peekMatches(1, tokentype.SEMICOLON) {
 		return
