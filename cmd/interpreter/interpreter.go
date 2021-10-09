@@ -16,6 +16,7 @@ var (
 	InterpreterCmd = &cobra.Command{
 		Use:   "interpreter",
 		Run:   runInterpreterCmd,
+		Args:  cobra.OnlyValidArgs,
 		Short: "Run the golox interpreter",
 		Long:  "Run the golox interpreter to execute lox code",
 	}

@@ -16,6 +16,7 @@ var (
 	ParserCmd = &cobra.Command{
 		Use:   "parser",
 		Run:   runParserCmd,
+		Args:  cobra.OnlyValidArgs,
 		Short: "Run the golox parser",
 		Long:  "Run the golox parser to produce an AST from lox source code",
 	}

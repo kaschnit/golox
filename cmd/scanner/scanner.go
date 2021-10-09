@@ -17,6 +17,7 @@ var (
 	ScannerCmd = &cobra.Command{
 		Use:   "scanner",
 		Run:   runScannerCmd,
+		Args:  cobra.OnlyValidArgs,
 		Short: "Run the golox scanner",
 		Long:  "Run the golox scanner to produce a stream of tokens from lox source code",
 	}
