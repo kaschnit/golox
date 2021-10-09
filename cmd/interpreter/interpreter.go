@@ -14,10 +14,16 @@ type InterpreterFlags struct {
 var (
 	flags          = &InterpreterFlags{}
 	InterpreterCmd = &cobra.Command{
-		Use: "parser",
-		Run: runInterpreterCmd,
+		Use:   "interpreter",
+		Run:   runInterpreterCmd,
+		Short: "Run the golox interpreter",
+		Long:  "Run the golox interpreter to execute lox code",
 	}
 )
+
+func init() {
+	InterpreterCmd.Flags().BoolVarP(&flags.interactive, "interactive", "i", false, "Run in interactive mode.")
+}
 
 func runInterpreterCmd(cmd *cobra.Command, args []string) {
 	if flags.interactive {

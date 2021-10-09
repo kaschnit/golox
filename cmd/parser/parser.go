@@ -14,8 +14,10 @@ type ParserFlags struct {
 var (
 	flags     = &ParserFlags{}
 	ParserCmd = &cobra.Command{
-		Use: "parser",
-		Run: runParserCmd,
+		Use:   "parser",
+		Run:   runParserCmd,
+		Short: "Run the golox parser",
+		Long:  "Run the golox parser to produce an AST from lox source code",
 	}
 )
 
