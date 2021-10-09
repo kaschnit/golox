@@ -1,5 +1,4 @@
-// Entrypoint for the Lox parser.
-package main
+package interpreter
 
 import (
 	"bufio"
@@ -10,9 +9,25 @@ import (
 	"github.com/kaschnit/golox/pkg/ast/printer"
 	"github.com/kaschnit/golox/pkg/parser"
 	"github.com/kaschnit/golox/pkg/scanner"
+	"github.com/spf13/cobra"
 )
 
-func main() {
+type InterpreterFlags struct {
+	interactive bool
+}
+
+var (
+	flags = InterpreterFlags{
+		interactive: false,
+	}
+
+	InterpreterCmd = &cobra.Command{
+		Use: "parser",
+		Run: runInterpreterCmd,
+	}
+)
+
+func runInterpreterCmd(cmd *cobra.Command, args []string) {
 	interactive := flag.Bool("interactive", false, "Launch the REPL")
 	flag.Parse()
 
@@ -37,7 +52,7 @@ func main() {
 			// Parse the input.
 			parser := parser.NewParser(tokens)
 			programAst, errs := parser.Parse()
-			if len(errs) > 0 {
+			if len(errs) == 0 {
 				for i := 0; i < len(errs); i++ {
 					fmt.Println(errs[i])
 				}

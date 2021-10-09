@@ -30,6 +30,14 @@ func NewScanner(source string) *Scanner {
 	}
 }
 
+func (s *Scanner) Reset() {
+	s.hasError = false
+	s.finished = false
+	s.start = 0
+	s.current = 0
+	s.line = 1
+}
+
 func (s *Scanner) ScanAllTokens() ([]*token.Token, []error) {
 	tokens := make([]*token.Token, 0)
 	errors := make([]error, 0)

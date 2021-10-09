@@ -21,6 +21,11 @@ func NewParser(tokens []*token.Token) *Parser {
 	}
 }
 
+func (p *Parser) Reset() {
+	p.start = 0
+	p.current = 0
+}
+
 func (p *Parser) Parse() (*ast.Program, []error) {
 	if numTokens := len(p.tokens); numTokens == 0 {
 		return nil, []error{loxerr.NewLoxErrorAtLine(0, "Expected EOF.")}
