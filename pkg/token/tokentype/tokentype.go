@@ -1,9 +1,8 @@
-// GENERATED - DO NOT MODIFY THIS FILE DIRECTLY.
-// To modify this file, edit the corresponding JSON file "TokenType.json".
-// This file was generated from source TokenType.json by enumgen_golang.
 package tokentype
 
 type TokenType int
+
+//go:generate go run golang.org/x/tools/cmd/stringer -type=TokenType
 
 const (
 	LEFT_PAREN TokenType = iota
@@ -46,3 +45,53 @@ const (
 	WHILE
 	EOF
 )
+
+func FromIdentifier(identifier string) TokenType {
+	switch identifier {
+	case "and":
+		return AND
+	case "class":
+		return CLASS
+	case "else":
+		return ELSE
+	case "false":
+		return FALSE
+	case "fun":
+		return FUN
+	case "for":
+		return FOR
+	case "if":
+		return IF
+	case "nil":
+		return NIL
+	case "or":
+		return OR
+	case "print":
+		return PRINT
+	case "return":
+		return RETURN
+	case "super":
+		return SUPER
+	case "this":
+		return THIS
+	case "true":
+		return TRUE
+	case "var":
+		return VAR
+	case "while":
+		return WHILE
+	default:
+		return IDENTIFIER
+	}
+}
+
+func ConstantLiteralValue(tokenType TokenType) interface{} {
+	switch tokenType {
+	case TRUE:
+		return true
+	case FALSE:
+		return false
+	default:
+		return nil
+	}
+}

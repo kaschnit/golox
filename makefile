@@ -1,7 +1,7 @@
 .PHONY: test
 
 generate:
-	./scripts/codegen.sh
+	go generate ./...
 
 test:
 	mkdir -p coverage
