@@ -89,6 +89,12 @@ func assertTokensEqual(t *testing.T, a *token.Token, b *token.Token) {
 	assert.Equal(t, a.Lexeme, b.Lexeme)
 }
 
+func assertIsAssignExpr(t *testing.T, expr ast.Expr) *ast.AssignExpr {
+	tree, ok := expr.(*ast.AssignExpr)
+	assert.True(t, ok)
+	return tree
+}
+
 func assertIsBinaryExpr(t *testing.T, expr ast.Expr) *ast.BinaryExpr {
 	tree, ok := expr.(*ast.BinaryExpr)
 	assert.True(t, ok)
@@ -223,6 +229,75 @@ func TestParse_OnlyEOF(t *testing.T) {
 	program, errs := parser.Parse()
 	assert.Empty(t, errs)
 	assert.Empty(t, program.Statements)
+}
+
+func TestParseExpression_SimpleAssignment(t *testing.T) {
+	varName := "a"
+	varValue := "hello"
+
+	// a = "hello" <EOF>
+	parser := NewParser([]*token.Token{
+		symToken(tokentype.IDENTIFIER, varName), symToken(tokentype.EQUAL, "="),
+		strToken(varValue), eofToken(),
+	})
+	tree, err := parser.parseExpression()
+	assert.Nil(t, err)
+
+	assignExpr := assertIsAssignExpr(t, tree)
+	assert.Equal(t, varName, assignExpr.Left.Lexeme)
+	rhsExpr := assertIsLiteralExpr(t, assignExpr.Right)
+	assert.Equal(t, varValue, rhsExpr.Value)
+}
+
+func TestParseExpression_AssignExpr(t *testing.T) {
+	varName := "result"
+	lhsVarValue := -5
+	rhsVarValue := 10
+
+	// result = -5 * 10 <EOF>
+	parser := NewParser([]*token.Token{
+		symToken(tokentype.IDENTIFIER, varName), symToken(tokentype.EQUAL, "="),
+		numToken(lhsVarValue), symToken(tokentype.STAR, "*"), numToken(rhsVarValue),
+		eofToken(),
+	})
+	tree, err := parser.parseExpression()
+	assert.Nil(t, err)
+
+	assignExpr := assertIsAssignExpr(t, tree)
+	assert.Equal(t, varName, assignExpr.Left.Lexeme)
+	rhsExpr := assertIsBinaryExpr(t, assignExpr.Right)
+	rhsExprLeft := assertIsLiteralExpr(t, rhsExpr.Left)
+	rhsExprRight := assertIsLiteralExpr(t, rhsExpr.Right)
+	assert.Equal(t, lhsVarValue, rhsExprLeft.Value)
+	assert.Equal(t, rhsVarValue, rhsExprRight.Value)
+}
+
+func TestParseExpression_ChainedAssignment(t *testing.T) {
+	var1Name := "x"
+	var2Name := "y"
+	var3Name := "z"
+	varValue := false
+
+	// a = "hello" <EOF>
+	parser := NewParser([]*token.Token{
+		symToken(tokentype.IDENTIFIER, var1Name), symToken(tokentype.EQUAL, "="),
+		symToken(tokentype.IDENTIFIER, var2Name), symToken(tokentype.EQUAL, "="),
+		symToken(tokentype.IDENTIFIER, var3Name), symToken(tokentype.EQUAL, "="),
+		boolToken(varValue), eofToken(),
+	})
+	tree, err := parser.parseExpression()
+	assert.Nil(t, err)
+
+	assignExprX := assertIsAssignExpr(t, tree)
+	assert.Equal(t, var1Name, assignExprX.Left.Lexeme)
+
+	assignExprY := assertIsAssignExpr(t, assignExprX.Right)
+	assert.Equal(t, var2Name, assignExprY.Left.Lexeme)
+
+	assignExprZ := assertIsAssignExpr(t, assignExprY.Right)
+	assert.Equal(t, var3Name, assignExprZ.Left.Lexeme)
+	assignExprZRhs := assertIsLiteralExpr(t, assignExprZ.Right)
+	assert.Equal(t, false, assignExprZRhs.Value)
 }
 
 func TestParseExpression_Equality(t *testing.T) {
