@@ -342,7 +342,32 @@ func (p *Parser) parseVarStatement() (*ast.VarStmt, error) {
 
 // Parse an expression.
 func (p *Parser) parseExpression() (ast.Expr, error) {
-	return p.parseEquality()
+	return p.parseAssignment()
+}
+
+// Parse an assignment expression.
+func (p *Parser) parseAssignment() (ast.Expr, error) {
+	expr, err := p.parseEquality()
+	if err != nil {
+		return nil, err
+	}
+
+	if p.peek(1).Type == tokentype.EQUAL {
+		equalsToken := p.peek(0)
+		p.advance()
+		right, err := p.parseAssignment()
+		if err != nil {
+			return nil, err
+		}
+
+		// Only allow assignment to a VarExpr.
+		if varExpr, ok := expr.(*ast.VarExpr); ok {
+			expr, err = &ast.AssignExpr{Left: varExpr.Name, Right: right}, nil
+		} else {
+			expr, err = nil, loxerr.NewLoxErrorAtToken(equalsToken, "Invalid assignment target.")
+		}
+	}
+	return expr, err
 }
 
 // Parse an equality expression.
@@ -454,7 +479,7 @@ func (p *Parser) parsePrimary() (ast.Expr, error) {
 		case tokentype.FALSE:
 			return &ast.LiteralExpr{Value: false}, nil
 		case tokentype.IDENTIFIER:
-			return &ast.VarExpr{Name: matched.Lexeme}, nil
+			return &ast.VarExpr{Name: matched}, nil
 		default:
 			return &ast.LiteralExpr{Value: matched.Literal}, nil
 		}

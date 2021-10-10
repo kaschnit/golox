@@ -10,6 +10,10 @@ func NewAstEmitter() *AstEmitter {
 	return &AstEmitter{}
 }
 
+func (p *AstEmitter) VisitAssignExpr(e *ast.AssignExpr) interface{} {
+	return nil
+}
+
 func (ae *AstEmitter) VisitBinaryExpr(ex *ast.BinaryExpr) interface{} {
 	return nil
 }

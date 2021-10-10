@@ -8,6 +8,15 @@ type Expr interface {
 	Accept(v AstVisitor) interface{}
 }
 
+type AssignExpr struct {
+	Left  *token.Token
+	Right Expr
+}
+
+func (e *AssignExpr) Accept(v AstVisitor) interface{} {
+	return v.VisitAssignExpr(e)
+}
+
 type BinaryExpr struct {
 	Left     Expr
 	Operator *token.Token
@@ -44,7 +53,7 @@ func (e *LiteralExpr) Accept(v AstVisitor) interface{} {
 }
 
 type VarExpr struct {
-	Name string
+	Name *token.Token
 }
 
 func (e *VarExpr) Accept(v AstVisitor) interface{} {

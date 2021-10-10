@@ -89,6 +89,13 @@ func (p *AstPrinter) VisitVarStmt(s *ast.VarStmt) interface{} {
 	return nil
 }
 
+func (p *AstPrinter) VisitAssignExpr(e *ast.AssignExpr) interface{} {
+	fmt.Printf("(assign %s ", e.Left.Lexeme)
+	e.Right.Accept(p)
+	fmt.Print(")")
+	return nil
+}
+
 func (p *AstPrinter) VisitBinaryExpr(e *ast.BinaryExpr) interface{} {
 	fmt.Printf("(%s ", e.Operator.Lexeme)
 	e.Left.Accept(p)
@@ -124,7 +131,7 @@ func (p *AstPrinter) VisitLiteralExpr(e *ast.LiteralExpr) interface{} {
 }
 
 func (p *AstPrinter) VisitVarExpr(e *ast.VarExpr) interface{} {
-	fmt.Printf("(var %s)", e.Name)
+	fmt.Printf("(var %s)", e.Name.Lexeme)
 	return nil
 }
 

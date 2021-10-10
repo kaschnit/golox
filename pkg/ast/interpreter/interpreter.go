@@ -38,6 +38,10 @@ func (i *AstInterpreter) VisitVarStmt(*ast.VarStmt) interface{} {
 	return nil
 }
 
+func (p *AstInterpreter) VisitAssignExpr(e *ast.AssignExpr) interface{} {
+	return nil
+}
+
 func (i *AstInterpreter) VisitBinaryExpr(e *ast.BinaryExpr) interface{} {
 	return nil
 }
