@@ -278,7 +278,7 @@ func TestParseExpression_ChainedAssignment(t *testing.T) {
 	var3Name := "z"
 	varValue := false
 
-	// a = "hello" <EOF>
+	// x = y = z = false <EOF>
 	parser := NewParser([]*token.Token{
 		symToken(tokentype.IDENTIFIER, var1Name), symToken(tokentype.EQUAL, "="),
 		symToken(tokentype.IDENTIFIER, var2Name), symToken(tokentype.EQUAL, "="),
