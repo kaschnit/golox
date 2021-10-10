@@ -14,5 +14,6 @@ cover-html: test
 	go tool cover -html ./coverage/profile.cov
 
 build: generate
+	go build -o ./build/golox .
 
 all: build test

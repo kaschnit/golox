@@ -1,2 +1,2 @@
-build/bin/
-coverage
+/build/
+/coverage
