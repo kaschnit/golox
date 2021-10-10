@@ -1,6 +1,7 @@
 package parser
 
 import (
+	"strconv"
 	"testing"
 
 	"github.com/kaschnit/golox/pkg/ast"
@@ -18,6 +19,15 @@ func strToken(val string) *token.Token {
 	}
 }
 
+func numToken(val int) *token.Token {
+	return &token.Token{
+		Type:    tokentype.NUMBER,
+		Lexeme:  strconv.Itoa(val),
+		Literal: val,
+		Line:    1,
+	}
+}
+
 func symToken(tokenType tokentype.TokenType, lexeme string) *token.Token {
 	return &token.Token{
 		Type:    tokenType,
@@ -28,58 +38,42 @@ func symToken(tokenType tokentype.TokenType, lexeme string) *token.Token {
 }
 
 func eofToken() *token.Token {
-	return &token.Token{
-		Type:    tokentype.EOF,
-		Lexeme:  "",
-		Literal: nil,
-		Line:    1,
-	}
+	return symToken(tokentype.EOF, "")
 }
 
 func printToken() *token.Token {
-	return &token.Token{
-		Type:    tokentype.PRINT,
-		Lexeme:  "print",
-		Literal: nil,
-		Line:    1,
-	}
+	return symToken(tokentype.PRINT, "print")
 }
 
 func ifToken() *token.Token {
-	return &token.Token{
-		Type:    tokentype.IF,
-		Lexeme:  "if",
-		Literal: nil,
-		Line:    1,
-	}
+	return symToken(tokentype.IF, "if")
 }
 
 func elseToken() *token.Token {
-	return &token.Token{
-		Type:    tokentype.ELSE,
-		Lexeme:  "else",
-		Literal: nil,
-		Line:    1,
-	}
+	return symToken(tokentype.ELSE, "else")
+}
+
+func varToken() *token.Token {
+	return symToken(tokentype.VAR, "var")
 }
 
 func whileToken() *token.Token {
-	return &token.Token{
-		Type:    tokentype.WHILE,
-		Lexeme:  "while",
-		Literal: nil,
-		Line:    1,
-	}
+	return symToken(tokentype.WHILE, "while")
 }
 
-func boolToken(lexeme string) *token.Token {
+func forToken() *token.Token {
+	return symToken(tokentype.FOR, "for")
+}
+
+func boolToken(val bool) *token.Token {
 	var tokenType tokentype.TokenType
-	if lexeme == "true" {
+	var lexeme string
+	if val {
+		lexeme = "true"
 		tokenType = tokentype.TRUE
-	} else if lexeme == "false" {
-		tokenType = tokentype.FALSE
 	} else {
-		panic("Invalid value in test.")
+		lexeme = "false"
+		tokenType = tokentype.FALSE
 	}
 
 	return &token.Token{
@@ -133,6 +127,12 @@ func assertIsIfStmt(t *testing.T, stmt ast.Stmt) *ast.IfStmt {
 
 func assertIsWhileStmt(t *testing.T, stmt ast.Stmt) *ast.WhileStmt {
 	tree, ok := stmt.(*ast.WhileStmt)
+	assert.True(t, ok)
+	return tree
+}
+
+func assertIsVarStmt(t *testing.T, stmt ast.Stmt) *ast.VarStmt {
+	tree, ok := stmt.(*ast.VarStmt)
 	assert.True(t, ok)
 	return tree
 }
@@ -289,7 +289,7 @@ func TestParseExpression_Primary_BooleanLiterals(t *testing.T) {
 	var expr *ast.LiteralExpr
 
 	parser = NewParser([]*token.Token{
-		boolToken("true"), eofToken(),
+		boolToken(true), eofToken(),
 	})
 	tree, err = parser.parseExpression()
 	assert.Nil(t, err)
@@ -297,7 +297,7 @@ func TestParseExpression_Primary_BooleanLiterals(t *testing.T) {
 	assert.Equal(t, expr.Value, true)
 
 	parser = NewParser([]*token.Token{
-		boolToken("false"), eofToken(),
+		boolToken(false), eofToken(),
 	})
 	tree, err = parser.parseExpression()
 	assert.Nil(t, err)
@@ -369,7 +369,7 @@ func TestParseExpressionStmt_Basic(t *testing.T) {
 	rhsValue := "rhsToken"
 	expectedOp := symToken(tokentype.PLUS, "+")
 
-	// print "lhsToken" +"rhsToken"; <EOF>
+	// "lhsToken" + "rhsToken" ; <EOF>
 	parser := NewParser([]*token.Token{
 		strToken(lhsValue), expectedOp, strToken(rhsValue),
 		symToken(tokentype.SEMICOLON, ";"), eofToken(),
@@ -386,7 +386,7 @@ func TestParseExpressionStmt_BadExpression(t *testing.T) {
 	lhsValue := "lhsToken"
 	expectedOp := symToken(tokentype.PLUS, "+")
 
-	// print "lhsToken" + <EOF>
+	// "lhsToken" + ; <EOF>
 	parser := NewParser([]*token.Token{
 		strToken(lhsValue), expectedOp, symToken(tokentype.SEMICOLON, ";"), eofToken(),
 	})
@@ -400,9 +400,69 @@ func TestParseExpressionStmt_MissingSemicolon(t *testing.T) {
 	rhsValue := "rhsToken"
 	expectedOp := symToken(tokentype.PLUS, "+")
 
-	// print "lhsToken" + <EOF>
+	// "lhsToken" + "rhsToken" <EOF>
 	parser := NewParser([]*token.Token{
 		strToken(lhsValue), expectedOp, strToken(rhsValue), eofToken(),
+	})
+	tree, err := parser.parseStatement()
+	assert.Nil(t, tree)
+	assert.Error(t, err)
+}
+
+func TestParseExpressionStmt_EmptyStmt(t *testing.T) {
+	// ; <EOF>
+	parser := NewParser([]*token.Token{
+		symToken(tokentype.SEMICOLON, ";"), eofToken(),
+	})
+	tree, err := parser.parseStatement()
+	assert.Nil(t, err)
+
+	stmt := assertIsExprStmt(t, tree)
+	expr := assertIsLiteralExpr(t, stmt.Expression)
+	assert.Nil(t, expr.Value)
+}
+
+func TestParseVarStmt_Basic(t *testing.T) {
+	lhsName := "a"
+	rhsVal := "hello"
+
+	// var a = "hello";
+	parser := NewParser([]*token.Token{
+		varToken(), symToken(tokentype.IDENTIFIER, lhsName), symToken(tokentype.EQUAL, "="),
+		strToken(rhsVal), symToken(tokentype.SEMICOLON, ";"), eofToken(),
+	})
+	tree, err := parser.parseStatement()
+	assert.Nil(t, err)
+
+	varStmt := assertIsVarStmt(t, tree)
+	rhsExpr := assertIsLiteralExpr(t, varStmt.Right)
+	assert.Equal(t, tokentype.IDENTIFIER, varStmt.Left.Type)
+	assert.Equal(t, lhsName, varStmt.Left.Lexeme)
+	assert.Equal(t, rhsVal, rhsExpr.Value)
+}
+
+func TestParseVarStmt_InvalidLhsNumerical(t *testing.T) {
+	lhsVal := 1
+	rhsVal := "hello"
+
+	// var 1 = "hello";
+	parser := NewParser([]*token.Token{
+		varToken(), numToken(lhsVal), symToken(tokentype.EQUAL, "="), strToken(rhsVal),
+		symToken(tokentype.SEMICOLON, ";"), eofToken(),
+	})
+	tree, err := parser.parseStatement()
+	assert.Nil(t, tree)
+	assert.Error(t, err)
+}
+
+func TestParseVarStmt_InvalidLhsString(t *testing.T) {
+	lhsVal := "hello"
+	rhsVal := 99
+
+	// var "hello" = 99;
+	parser := NewParser([]*token.Token{
+		varToken(), strToken(lhsVal), symToken(tokentype.EQUAL, "="), numToken(rhsVal),
+		symToken(tokentype.SEMICOLON, ";"), eofToken(),
 	})
 	tree, err := parser.parseStatement()
 	assert.Nil(t, tree)
@@ -414,7 +474,7 @@ func TestParseIfStmt_NoBlockNoElse(t *testing.T) {
 
 	// if (true) print "if branch"; <EOF>
 	parser := NewParser([]*token.Token{
-		ifToken(), symToken(tokentype.LEFT_PAREN, "("), boolToken("true"), symToken(tokentype.RIGHT_PAREN, ")"),
+		ifToken(), symToken(tokentype.LEFT_PAREN, "("), boolToken(true), symToken(tokentype.RIGHT_PAREN, ")"),
 		printToken(), strToken(ifBranchPrint), symToken(tokentype.SEMICOLON, ";"),
 		eofToken(),
 	})
@@ -436,7 +496,7 @@ func TestParseIfStmt_NoBlockWithElse(t *testing.T) {
 
 	// if (true) print "if branch"; else print "else branch"; <EOF>
 	parser := NewParser([]*token.Token{
-		ifToken(), symToken(tokentype.LEFT_PAREN, "("), boolToken("true"), symToken(tokentype.RIGHT_PAREN, ")"),
+		ifToken(), symToken(tokentype.LEFT_PAREN, "("), boolToken(true), symToken(tokentype.RIGHT_PAREN, ")"),
 		printToken(), strToken(ifBranchPrint), symToken(tokentype.SEMICOLON, ";"),
 		elseToken(), printToken(), strToken(elseBranchPrint), symToken(tokentype.SEMICOLON, ";"),
 		eofToken(),
@@ -463,9 +523,9 @@ func TestParseWhileStmt_Basic(t *testing.T) {
 	bodyExprStmtRhs := "2"
 	bodyExprStmtOp := symToken(tokentype.PLUS, "+")
 
-	// if (true) print "if branch"; <EOF>
+	// while (false) { print "while loop printing"; 1 + 2; } <EOF>
 	parser := NewParser([]*token.Token{
-		whileToken(), symToken(tokentype.LEFT_PAREN, "("), boolToken("false"), symToken(tokentype.RIGHT_PAREN, ")"),
+		whileToken(), symToken(tokentype.LEFT_PAREN, "("), boolToken(false), symToken(tokentype.RIGHT_PAREN, ")"),
 		symToken(tokentype.LEFT_BRACE, "{"),
 		printToken(), strToken(bodyPrintStmt), symToken(tokentype.SEMICOLON, ";"),
 		strToken(bodyExprStmtLhs), bodyExprStmtOp, strToken(bodyExprStmtRhs), symToken(tokentype.SEMICOLON, ";"),
@@ -488,4 +548,233 @@ func TestParseWhileStmt_Basic(t *testing.T) {
 	exprStmt := assertIsExprStmt(t, block.Statements[1])
 	exprStmtExpr := assertIsBinaryExpr(t, exprStmt.Expression)
 	assertBinaryExprOfLiterals(t, exprStmtExpr, bodyExprStmtLhs, bodyExprStmtOp, bodyExprStmtRhs)
+}
+
+func TestParseForStmt_Empty(t *testing.T) {
+	bodyPrintStmt := "for loop printing"
+
+	// for (;;) { print "for loop printing"; } <EOF>
+	parser := NewParser([]*token.Token{
+		forToken(), symToken(tokentype.LEFT_PAREN, "("),
+		symToken(tokentype.SEMICOLON, ";"), symToken(tokentype.SEMICOLON, ";"),
+		symToken(tokentype.RIGHT_PAREN, ")"), symToken(tokentype.LEFT_BRACE, "{"),
+		printToken(), strToken(bodyPrintStmt), symToken(tokentype.SEMICOLON, ";"),
+		symToken(tokentype.RIGHT_BRACE, "}"),
+		eofToken(),
+	})
+	tree, err := parser.parseStatement()
+	assert.Nil(t, err)
+
+	// For loop desugared to a while loop.
+	whileStmt := assertIsWhileStmt(t, tree)
+
+	// Condition is implicitly true if not provided.
+	cond := assertIsLiteralExpr(t, whileStmt.Condition)
+	assert.Equal(t, cond.Value, true)
+
+	// Block has exactly 1 statement, the print statement.
+	block := assertIsBlockStmt(t, whileStmt.LoopStatement)
+	assert.Len(t, block.Statements, 1)
+	assertIsPrintStmt(t, block.Statements[0])
+}
+
+func TestParseForStmt_OnlyInitialiazer_VarStmt(t *testing.T) {
+	bodyPrintStmt := "for loop printing"
+	varName := "x"
+	varValue := 34
+
+	// for (var x = 34;;) { print "for loop printing"; } <EOF>
+	parser := NewParser([]*token.Token{
+		forToken(), symToken(tokentype.LEFT_PAREN, "("),
+		varToken(), symToken(tokentype.IDENTIFIER, varName),
+		symToken(tokentype.EQUAL, "="), numToken(varValue), symToken(tokentype.SEMICOLON, ";"),
+		symToken(tokentype.SEMICOLON, ";"), symToken(tokentype.RIGHT_PAREN, ")"),
+		symToken(tokentype.LEFT_BRACE, "{"),
+		printToken(), strToken(bodyPrintStmt), symToken(tokentype.SEMICOLON, ";"),
+		symToken(tokentype.RIGHT_BRACE, "}"),
+		eofToken(),
+	})
+	tree, err := parser.parseStatement()
+	assert.Nil(t, err)
+
+	// For loop with initializer is desugared to an initializer + while loop within a block.
+	blockWrapperStmt := assertIsBlockStmt(t, tree)
+	assert.Len(t, blockWrapperStmt.Statements, 2)
+	initializerStmt := assertIsVarStmt(t, blockWrapperStmt.Statements[0])
+	initRight := assertIsLiteralExpr(t, initializerStmt.Right)
+	assert.Equal(t, varName, initializerStmt.Left.Lexeme)
+	assert.Equal(t, varValue, initRight.Value)
+
+	whileStmt := assertIsWhileStmt(t, blockWrapperStmt.Statements[1])
+
+	// Condition is implicitly true if not provided.
+	cond := assertIsLiteralExpr(t, whileStmt.Condition)
+	assert.Equal(t, cond.Value, true)
+
+	// Block has exactly 1 statement, the print statement.
+	block := assertIsBlockStmt(t, whileStmt.LoopStatement)
+	assert.Len(t, block.Statements, 1)
+	assertIsPrintStmt(t, block.Statements[0])
+}
+
+func TestParseForStmt_OnlyInitialiazer_ExprStmt(t *testing.T) {
+	bodyPrintStmt := "for loop printing"
+	initExprValue := "hello"
+
+	// for ("hello";;) { print "for loop printing"; } <EOF>
+	parser := NewParser([]*token.Token{
+		forToken(), symToken(tokentype.LEFT_PAREN, "("), strToken(initExprValue),
+		symToken(tokentype.SEMICOLON, ";"), symToken(tokentype.SEMICOLON, ";"),
+		symToken(tokentype.RIGHT_PAREN, ")"), symToken(tokentype.LEFT_BRACE, "{"),
+		printToken(), strToken(bodyPrintStmt), symToken(tokentype.SEMICOLON, ";"),
+		symToken(tokentype.RIGHT_BRACE, "}"),
+		eofToken(),
+	})
+	tree, err := parser.parseStatement()
+	assert.Nil(t, err)
+
+	// For loop with initializer is desugared to an initializer + while loop within a block.
+	blockWrapperStmt := assertIsBlockStmt(t, tree)
+	assert.Len(t, blockWrapperStmt.Statements, 2)
+	initializerStmt := assertIsExprStmt(t, blockWrapperStmt.Statements[0])
+	initializeExpr := assertIsLiteralExpr(t, initializerStmt.Expression)
+	assert.Equal(t, initExprValue, initializeExpr.Value)
+
+	whileStmt := assertIsWhileStmt(t, blockWrapperStmt.Statements[1])
+
+	// Condition is implicitly true if not provided.
+	cond := assertIsLiteralExpr(t, whileStmt.Condition)
+	assert.Equal(t, cond.Value, true)
+
+	// Block has exactly 1 statement, the print statement.
+	block := assertIsBlockStmt(t, whileStmt.LoopStatement)
+	assert.Len(t, block.Statements, 1)
+	assertIsPrintStmt(t, block.Statements[0])
+}
+
+func TestParseForStmt_OnlyCondition(t *testing.T) {
+	bodyPrintStmt := "for loop printing"
+	condLeftVal := 1
+	condRightVal := 2
+
+	// for (; 1 < 2;) { print "for loop printing"; } <EOF>
+	parser := NewParser([]*token.Token{
+		forToken(), symToken(tokentype.LEFT_PAREN, "("), symToken(tokentype.SEMICOLON, ";"),
+		numToken(condLeftVal), symToken(tokentype.LESS, "<"), numToken(condRightVal),
+		symToken(tokentype.SEMICOLON, ";"), symToken(tokentype.RIGHT_PAREN, ")"), symToken(tokentype.LEFT_BRACE, "{"),
+		printToken(), strToken(bodyPrintStmt), symToken(tokentype.SEMICOLON, ";"),
+		symToken(tokentype.RIGHT_BRACE, "}"),
+		eofToken(),
+	})
+	tree, err := parser.parseStatement()
+	assert.Nil(t, err)
+
+	// For loop desugared to a while loop.
+	whileStmt := assertIsWhileStmt(t, tree)
+
+	// Condition provided.
+	cond := assertIsBinaryExpr(t, whileStmt.Condition)
+	condLeft := assertIsLiteralExpr(t, cond.Left)
+	condRight := assertIsLiteralExpr(t, cond.Right)
+	assert.Equal(t, condLeftVal, condLeft.Value)
+	assert.Equal(t, tokentype.LESS, cond.Operator.Type)
+	assert.Equal(t, condRightVal, condRight.Value)
+
+	// Block has exactly 1 statement, the print statement.
+	block := assertIsBlockStmt(t, whileStmt.LoopStatement)
+	assert.Len(t, block.Statements, 1)
+	assertIsPrintStmt(t, block.Statements[0])
+}
+
+func TestParseForStmt_OnlyIncrement(t *testing.T) {
+	bodyPrintStmt := "for loop printing"
+	incrLeftVal := 1
+	incrRightVal := 987
+
+	// for (;; 1 + 987) { print "for loop printing"; } <EOF>
+	parser := NewParser([]*token.Token{
+		forToken(), symToken(tokentype.LEFT_PAREN, "("), symToken(tokentype.SEMICOLON, ";"),
+		symToken(tokentype.SEMICOLON, ";"), numToken(incrLeftVal),
+		symToken(tokentype.PLUS, "+"), numToken(incrRightVal),
+		symToken(tokentype.RIGHT_PAREN, ")"), symToken(tokentype.LEFT_BRACE, "{"),
+		printToken(), strToken(bodyPrintStmt), symToken(tokentype.SEMICOLON, ";"),
+		symToken(tokentype.RIGHT_BRACE, "}"),
+		eofToken(),
+	})
+	tree, err := parser.parseStatement()
+	assert.Nil(t, err)
+
+	// For loop desugared to a while loop.
+	whileStmt := assertIsWhileStmt(t, tree)
+
+	// Condition is implicitly true if not provided.
+	cond := assertIsLiteralExpr(t, whileStmt.Condition)
+	assert.Equal(t, cond.Value, true)
+
+	// Block has a block within it.
+	// The outer block contains the inner block, then the increment.
+	// The inner block contains the actual loop body.
+	outerBlock := assertIsBlockStmt(t, whileStmt.LoopStatement)
+	assert.Len(t, outerBlock.Statements, 2)
+	innerBlock := assertIsBlockStmt(t, outerBlock.Statements[0])
+	assert.Len(t, innerBlock.Statements, 1)
+	increment := assertIsExprStmt(t, outerBlock.Statements[1])
+	incrementExpr := assertIsBinaryExpr(t, increment.Expression)
+	incrementLeft := assertIsLiteralExpr(t, incrementExpr.Left)
+	assert.Equal(t, incrLeftVal, incrementLeft.Value)
+	incrementRight := assertIsLiteralExpr(t, incrementExpr.Right)
+	assert.Equal(t, incrRightVal, incrementRight.Value)
+}
+
+func TestParseForStmt_AllLoopExprs(t *testing.T) {
+	bodyPrintStmt := "for loop printing"
+	initVarName := "y"
+	initVarValue := "abc"
+	condValue := false
+	incrLeftVal := 1
+	incrRightVal := 987
+
+	// for (var y = "abc"; false; 1 + 987) { print "for loop printing"; } <EOF>
+	parser := NewParser([]*token.Token{
+		forToken(), symToken(tokentype.LEFT_PAREN, "("),
+		varToken(), symToken(tokentype.IDENTIFIER, initVarName), symToken(tokentype.EQUAL, "="),
+		strToken(initVarValue), symToken(tokentype.SEMICOLON, ";"), boolToken(condValue),
+		symToken(tokentype.SEMICOLON, ";"), numToken(incrLeftVal),
+		symToken(tokentype.PLUS, "+"), numToken(incrRightVal),
+		symToken(tokentype.RIGHT_PAREN, ")"), symToken(tokentype.LEFT_BRACE, "{"),
+		printToken(), strToken(bodyPrintStmt), symToken(tokentype.SEMICOLON, ";"),
+		symToken(tokentype.RIGHT_BRACE, "}"),
+		eofToken(),
+	})
+	tree, err := parser.parseStatement()
+	assert.Nil(t, err)
+
+	// For loop with initializer is desugared to an initializer + while loop within a block.
+	blockWrapperStmt := assertIsBlockStmt(t, tree)
+	assert.Len(t, blockWrapperStmt.Statements, 2)
+	initVarStmt := assertIsVarStmt(t, blockWrapperStmt.Statements[0])
+	initVarStmtRight := assertIsLiteralExpr(t, initVarStmt.Right)
+	assert.Equal(t, initVarName, initVarStmt.Left.Lexeme)
+	assert.Equal(t, initVarValue, initVarStmtRight.Value)
+
+	// For loop desugared to a while loop.
+	whileStmt := assertIsWhileStmt(t, blockWrapperStmt.Statements[1])
+
+	// Condition provided.
+	cond := assertIsLiteralExpr(t, whileStmt.Condition)
+	assert.Equal(t, false, cond.Value)
+
+	// Block has a block within it.
+	// The outer block contains the inner block, then the increment.
+	// The inner block contains the actual loop body.
+	outerBlock := assertIsBlockStmt(t, whileStmt.LoopStatement)
+	assert.Len(t, outerBlock.Statements, 2)
+	innerBlock := assertIsBlockStmt(t, outerBlock.Statements[0])
+	assert.Len(t, innerBlock.Statements, 1)
+	increment := assertIsExprStmt(t, outerBlock.Statements[1])
+	incrementExpr := assertIsBinaryExpr(t, increment.Expression)
+	incrementLeft := assertIsLiteralExpr(t, incrementExpr.Left)
+	assert.Equal(t, incrLeftVal, incrementLeft.Value)
+	incrementRight := assertIsLiteralExpr(t, incrementExpr.Right)
+	assert.Equal(t, incrRightVal, incrementRight.Value)
 }

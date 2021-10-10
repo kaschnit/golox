@@ -63,6 +63,7 @@ func (p *Parser) parseProgram() (*ast.Program, []error) {
 // Parse a statement with the type of statement based on the next token.
 func (p *Parser) parseStatement() (ast.Stmt, error) {
 	nextToken := p.peek(1)
+
 	switch nextToken.Type {
 	case tokentype.PRINT:
 		p.advance()
@@ -103,7 +104,14 @@ func (p *Parser) parsePrintStatement() (*ast.PrintStmt, error) {
 
 // Parse an expression statement.
 func (p *Parser) parseExpressionStatement() (*ast.ExprStmt, error) {
-	expr, err := p.parseExpression()
+
+	var expr ast.Expr
+	var err error
+	if p.peekMatches(1, tokentype.SEMICOLON) {
+		expr = &ast.LiteralExpr{Value: nil}
+	} else {
+		expr, err = p.parseExpression()
+	}
 	if err != nil {
 		return nil, err
 	}
@@ -187,7 +195,7 @@ func (p *Parser) parseWhileStatement() (*ast.WhileStmt, error) {
 // Parse a for loop statement.
 // Desugars the for loop to a while loop. The following two are equivalent:
 // 	1. for (int i = 0; i < 5; i++) { doSomething() }
-// 	2. { int i = 0; while (i < 5) { { doSomething(); } i++ } }
+// 	2. { int i = 0; while (i < 5) { { doSomething(); } i++; } }
 // The while loop is placed inside its own block. The initializer is placed at the beginning
 // of this block. The loop body is placed inside a nested block, and the increment is placed
 // after this nested block.
@@ -207,6 +215,7 @@ func (p *Parser) parseForStatement() (ast.Stmt, error) {
 	if nextToken.Type == tokentype.SEMICOLON {
 		p.advance()
 	} else if nextToken.Type == tokentype.VAR {
+		p.advance()
 		initializer, err = p.parseVarStatement()
 	} else {
 		initializer, err = p.parseExpressionStatement()
@@ -220,7 +229,6 @@ func (p *Parser) parseForStatement() (ast.Stmt, error) {
 	var condition ast.Expr
 	if nextToken.Type == tokentype.SEMICOLON {
 		condition = &ast.LiteralExpr{Value: true}
-		p.advance()
 	} else {
 		condition, err = p.parseExpression()
 	}
@@ -258,8 +266,9 @@ func (p *Parser) parseForStatement() (ast.Stmt, error) {
 
 	// If there's an increment, place it at the end of the loop body.
 	if increment != nil {
+		incrementStmt := &ast.ExprStmt{Expression: increment}
 		loopBody = &ast.BlockStmt{
-			Statements: []ast.Stmt{loopBody, increment},
+			Statements: []ast.Stmt{loopBody, incrementStmt},
 		}
 	}
 
@@ -307,8 +316,8 @@ func (p *Parser) parseVarStatement() (*ast.VarStmt, error) {
 	}
 	p.advance()
 
-	var rhs ast.Expr = nil
-	var err error = nil
+	var rhs ast.Expr
+	var err error
 
 	// Optional RHS of the declaration.
 	if p.peek(1).Type == tokentype.EQUAL {
@@ -504,33 +513,19 @@ func (p *Parser) isAtEnd() bool {
 	return p.peek(1).Type == tokentype.EOF
 }
 
-// Move the token pointer to the next statement.
+// Move the token pointer to the beginning of the next statement.
 // This should be called after handling an error.
 func (p *Parser) synchronize() {
-	if p.peekMatches(1, tokentype.SEMICOLON) {
-		return
+	stopAtTokens := []tokentype.TokenType{
+		tokentype.CLASS, tokentype.FUN, tokentype.VAR,
+		tokentype.FOR, tokentype.IF, tokentype.WHILE,
+		tokentype.PRINT, tokentype.RETURN,
 	}
 
 	for !p.isAtEnd() {
-		switch p.peek(1).Type {
-		case tokentype.CLASS:
-			fallthrough
-		case tokentype.FUN:
-			fallthrough
-		case tokentype.VAR:
-			fallthrough
-		case tokentype.FOR:
-			fallthrough
-		case tokentype.IF:
-			fallthrough
-		case tokentype.WHILE:
-			fallthrough
-		case tokentype.PRINT:
-			fallthrough
-		case tokentype.RETURN:
+		p.current++
+		if p.peekMatches(0, tokentype.SEMICOLON) || p.peekMatches(1, stopAtTokens...) {
 			return
-		default:
-			p.current++
 		}
 	}
 }
