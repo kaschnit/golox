@@ -53,3 +53,7 @@ func (i *AstInterpreter) VisitGroupingExpr(e *ast.GroupingExpr) interface{} {
 func (i *AstInterpreter) VisitLiteralExpr(e *ast.LiteralExpr) interface{} {
 	return nil
 }
+
+func (i *AstInterpreter) VisitVarExpr(e *ast.VarExpr) interface{} {
+	return nil
+}

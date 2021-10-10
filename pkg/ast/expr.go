@@ -42,3 +42,11 @@ type LiteralExpr struct {
 func (e *LiteralExpr) Accept(v AstVisitor) interface{} {
 	return v.VisitLiteralExpr(e)
 }
+
+type VarExpr struct {
+	Name string
+}
+
+func (e *VarExpr) Accept(v AstVisitor) interface{} {
+	return v.VisitVarExpr(e)
+}

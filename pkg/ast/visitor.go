@@ -15,4 +15,5 @@ type AstVisitor interface {
 	VisitUnaryExpr(*UnaryExpr) interface{}
 	VisitGroupingExpr(*GroupingExpr) interface{}
 	VisitLiteralExpr(*LiteralExpr) interface{}
+	VisitVarExpr(*VarExpr) interface{}
 }

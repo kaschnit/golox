@@ -20,11 +20,13 @@ func (ae *AstEmitter) VisitUnaryExpr(ex *ast.UnaryExpr) interface{} {
 }
 
 func (ae *AstEmitter) VisitGroupingExpr(ex *ast.GroupingExpr) interface{} {
-
 	return nil
 }
 
 func (ae *AstEmitter) VisitLiteralExpr(ex *ast.LiteralExpr) interface{} {
+	return nil
+}
 
+func (ae *AstEmitter) VisitVarExpr(ex *ast.VarExpr) interface{} {
 	return nil
 }

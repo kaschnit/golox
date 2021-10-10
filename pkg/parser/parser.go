@@ -444,7 +444,7 @@ func (p *Parser) parsePrimary() (ast.Expr, error) {
 	matchTokens := []tokentype.TokenType{
 		tokentype.NUMBER, tokentype.STRING,
 		tokentype.TRUE, tokentype.FALSE,
-		tokentype.NIL,
+		tokentype.IDENTIFIER, tokentype.NIL,
 	}
 	if p.peekMatches(1, matchTokens...) {
 		matched := p.advance()
@@ -453,6 +453,8 @@ func (p *Parser) parsePrimary() (ast.Expr, error) {
 			return &ast.LiteralExpr{Value: true}, nil
 		case tokentype.FALSE:
 			return &ast.LiteralExpr{Value: false}, nil
+		case tokentype.IDENTIFIER:
+			return &ast.VarExpr{Name: matched.Lexeme}, nil
 		default:
 			return &ast.LiteralExpr{Value: matched.Literal}, nil
 		}

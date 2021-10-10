@@ -123,6 +123,11 @@ func (p *AstPrinter) VisitLiteralExpr(e *ast.LiteralExpr) interface{} {
 	return nil
 }
 
+func (p *AstPrinter) VisitVarExpr(e *ast.VarExpr) interface{} {
+	fmt.Printf("(var %s)", e.Name)
+	return nil
+}
+
 func (p *AstPrinter) printTabbing() {
 	for i := 0; i < p.indent; i++ {
 		fmt.Print("  ")
