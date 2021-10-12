@@ -17,6 +17,16 @@ func (e *AssignExpr) Accept(v AstVisitor) interface{} {
 	return v.VisitAssignExpr(e)
 }
 
+type CallExpr struct {
+	Callee     Expr
+	OpenParent *token.Token
+	Args       []Expr
+}
+
+func (e *CallExpr) Accept(v AstVisitor) interface{} {
+	return v.VisitCallExpr(e)
+}
+
 type BinaryExpr struct {
 	Left     Expr
 	Operator *token.Token

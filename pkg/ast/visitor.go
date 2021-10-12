@@ -9,6 +9,8 @@ type AstVisitor interface {
 	VisitExprStmt(*ExprStmt) interface{}
 	VisitIfStmt(*IfStmt) interface{}
 	VisitWhileStmt(*WhileStmt) interface{}
+	VisitAssignExpr(*AssignExpr) interface{}
+	VisitCallExpr(*CallExpr) interface{}
 	VisitBlockStmt(*BlockStmt) interface{}
 	VisitVarStmt(*VarStmt) interface{}
 	VisitBinaryExpr(*BinaryExpr) interface{}
@@ -16,5 +18,4 @@ type AstVisitor interface {
 	VisitGroupingExpr(*GroupingExpr) interface{}
 	VisitLiteralExpr(*LiteralExpr) interface{}
 	VisitVarExpr(*VarExpr) interface{}
-	VisitAssignExpr(*AssignExpr) interface{}
 }

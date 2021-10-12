@@ -96,6 +96,11 @@ func (p *AstPrinter) VisitAssignExpr(e *ast.AssignExpr) interface{} {
 	return nil
 }
 
+func (p *AstPrinter) VisitCallExpr(e *ast.CallExpr) interface{} {
+	fmt.Print("(call)")
+	return nil
+}
+
 func (p *AstPrinter) VisitBinaryExpr(e *ast.BinaryExpr) interface{} {
 	fmt.Printf("(%s ", e.Operator.Lexeme)
 	e.Left.Accept(p)

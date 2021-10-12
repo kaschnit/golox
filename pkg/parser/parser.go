@@ -461,7 +461,54 @@ func (p *Parser) parseUnary() (ast.Expr, error) {
 			Right:    right,
 		}, nil
 	}
-	return p.parsePrimary()
+	return p.parseCall()
+}
+
+// Parse a call expression.
+func (p *Parser) parseCall() (ast.Expr, error) {
+	// Leftmost part of the call should be a primary expr.
+	expr, err := p.parsePrimary()
+	if err != nil {
+		return nil, err
+	}
+
+	// Find all consecutive call operators.
+	for nextToken := p.peek(1); nextToken.Type == tokentype.LEFT_PAREN; nextToken = p.peek(1) {
+		p.advance()
+
+		// Extract the args for this call, if any.
+		args := []ast.Expr{}
+		if !p.peekMatches(1, tokentype.RIGHT_PAREN) {
+			for {
+				arg, err := p.parseExpression()
+				if err != nil {
+					return nil, err
+				}
+				args = append(args, arg)
+
+				// After the arg, there must be either a comma or a closing parentheses.
+				// If closing parentheses, done parsing the args.
+				// Continue parsing args if it's a comma.
+				nextSep := p.advance()
+				if nextSep.Type == tokentype.RIGHT_PAREN {
+					break
+				} else if nextSep.Type != tokentype.COMMA {
+					return nil, loxerr.NewLoxErrorAtToken(nextSep, "Expected ')' after call.")
+				}
+			}
+		} else {
+			p.advance()
+		}
+
+		// The current call becomes the callee of the next call.
+		expr = &ast.CallExpr{
+			Callee:     expr,
+			OpenParent: nextToken,
+			Args:       args,
+		}
+	}
+
+	return expr, nil
 }
 
 // Parse a primary expression.

@@ -42,6 +42,10 @@ func (p *AstInterpreter) VisitAssignExpr(e *ast.AssignExpr) interface{} {
 	return nil
 }
 
+func (p *AstInterpreter) VisitCallExpr(e *ast.CallExpr) interface{} {
+	return nil
+}
+
 func (i *AstInterpreter) VisitBinaryExpr(e *ast.BinaryExpr) interface{} {
 	return nil
 }
