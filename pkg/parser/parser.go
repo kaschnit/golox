@@ -502,9 +502,9 @@ func (p *Parser) parseCall() (ast.Expr, error) {
 
 		// The current call becomes the callee of the next call.
 		expr = &ast.CallExpr{
-			Callee:     expr,
-			OpenParent: nextToken,
-			Args:       args,
+			Callee:    expr,
+			OpenParen: nextToken,
+			Args:      args,
 		}
 	}
 

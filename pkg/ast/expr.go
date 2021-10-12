@@ -18,9 +18,9 @@ func (e *AssignExpr) Accept(v AstVisitor) interface{} {
 }
 
 type CallExpr struct {
-	Callee     Expr
-	OpenParent *token.Token
-	Args       []Expr
+	Callee    Expr
+	OpenParen *token.Token
+	Args      []Expr
 }
 
 func (e *CallExpr) Accept(v AstVisitor) interface{} {

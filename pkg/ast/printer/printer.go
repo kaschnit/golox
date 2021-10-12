@@ -97,7 +97,16 @@ func (p *AstPrinter) VisitAssignExpr(e *ast.AssignExpr) interface{} {
 }
 
 func (p *AstPrinter) VisitCallExpr(e *ast.CallExpr) interface{} {
-	fmt.Print("(call)")
+	fmt.Print("(call ")
+	e.Callee.Accept(p)
+	fmt.Print("(")
+	for i, v := range e.Args {
+		v.Accept(p)
+		if i != len(e.Args)-1 {
+			fmt.Print(", ")
+		}
+	}
+	fmt.Print("))")
 	return nil
 }
 
