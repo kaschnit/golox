@@ -95,6 +95,12 @@ func assertIsAssignExpr(t *testing.T, expr ast.Expr) *ast.AssignExpr {
 	return tree
 }
 
+func assertIsCallExpr(t *testing.T, expr ast.Expr) *ast.CallExpr {
+	tree, ok := expr.(*ast.CallExpr)
+	assert.True(t, ok)
+	return tree
+}
+
 func assertIsBinaryExpr(t *testing.T, expr ast.Expr) *ast.BinaryExpr {
 	tree, ok := expr.(*ast.BinaryExpr)
 	assert.True(t, ok)
@@ -151,6 +157,12 @@ func assertIsExprStmt(t *testing.T, stmt ast.Stmt) *ast.ExprStmt {
 
 func assertIsBlockStmt(t *testing.T, stmt ast.Stmt) *ast.BlockStmt {
 	tree, ok := stmt.(*ast.BlockStmt)
+	assert.True(t, ok)
+	return tree
+}
+
+func assertIsVarExpr(t *testing.T, stmt ast.Expr) *ast.VarExpr {
+	tree, ok := stmt.(*ast.VarExpr)
 	assert.True(t, ok)
 	return tree
 }
@@ -272,7 +284,7 @@ func TestParseExpression_AssignExpr(t *testing.T) {
 	assert.Equal(t, rhsVarValue, rhsExprRight.Value)
 }
 
-func TestParseExpression_ChainedAssignment(t *testing.T) {
+func TestParseExpression_AssignExprChainedAssignment(t *testing.T) {
 	var1Name := "x"
 	var2Name := "y"
 	var3Name := "z"
@@ -298,6 +310,141 @@ func TestParseExpression_ChainedAssignment(t *testing.T) {
 	assert.Equal(t, var3Name, assignExprZ.Left.Lexeme)
 	assignExprZRhs := assertIsLiteralExpr(t, assignExprZ.Right)
 	assert.Equal(t, false, assignExprZRhs.Value)
+}
+
+func TestParseExpression_CallExpr_NoArgs(t *testing.T) {
+	funcName := "FunctionName1"
+
+	// FunctionName1() <EOF>
+	parser := NewParser([]*token.Token{
+		symToken(tokentype.IDENTIFIER, funcName), symToken(tokentype.LEFT_PAREN, "("),
+		symToken(tokentype.RIGHT_PAREN, ")"), eofToken(),
+	})
+	tree, err := parser.parseExpression()
+	assert.Nil(t, err)
+
+	call := assertIsCallExpr(t, tree)
+	assert.Len(t, call.Args, 0)
+	callee := assertIsVarExpr(t, call.Callee)
+	assert.Equal(t, funcName, callee.Name.Lexeme)
+}
+
+func TestParseExpression_CallExpr_SingleArg(t *testing.T) {
+	funcName := "FunctionName1"
+	funcArg := 1
+
+	// FunctionName1(1) <EOF>
+	parser := NewParser([]*token.Token{
+		symToken(tokentype.IDENTIFIER, funcName), symToken(tokentype.LEFT_PAREN, "("),
+		numToken(funcArg), symToken(tokentype.RIGHT_PAREN, ")"), eofToken(),
+	})
+	tree, err := parser.parseExpression()
+	assert.Nil(t, err)
+
+	call := assertIsCallExpr(t, tree)
+	assert.Len(t, call.Args, 1)
+	arg := assertIsLiteralExpr(t, call.Args[0])
+	assert.Equal(t, funcArg, arg.Value)
+	callee := assertIsVarExpr(t, call.Callee)
+	assert.Equal(t, funcName, callee.Name.Lexeme)
+}
+
+func TestParseExpression_CallExpr_MultipleArgs(t *testing.T) {
+	funcName := "FunctionName1"
+	funcArg0 := 1
+	funcArg1 := "hello"
+
+	// FunctionName1(1, "hello") <EOF>
+	parser := NewParser([]*token.Token{
+		symToken(tokentype.IDENTIFIER, funcName), symToken(tokentype.LEFT_PAREN, "("),
+		numToken(funcArg0), symToken(tokentype.COMMA, ","), strToken(funcArg1),
+		symToken(tokentype.RIGHT_PAREN, ")"), eofToken(),
+	})
+	tree, err := parser.parseExpression()
+	assert.Nil(t, err)
+
+	call := assertIsCallExpr(t, tree)
+	assert.Len(t, call.Args, 2)
+	arg0 := assertIsLiteralExpr(t, call.Args[0])
+	arg1 := assertIsLiteralExpr(t, call.Args[1])
+	assert.Equal(t, funcArg0, arg0.Value)
+	assert.Equal(t, funcArg1, arg1.Value)
+	callee := assertIsVarExpr(t, call.Callee)
+	assert.Equal(t, funcName, callee.Name.Lexeme)
+}
+
+func TestParseExpression_CallExpr_ChainedCalls(t *testing.T) {
+	funcName := "FunctionName1"
+	func0Arg0 := 1
+	func2Arg0 := "hello"
+	func2Arg1 := true
+	func2Arg2 := "goodbye"
+
+	// FunctionName1(1)()("hello", true, "goodbye") <EOF>
+	parser := NewParser([]*token.Token{
+		symToken(tokentype.IDENTIFIER, funcName),
+		symToken(tokentype.LEFT_PAREN, "("),
+		numToken(func0Arg0),
+		symToken(tokentype.RIGHT_PAREN, ")"),
+		symToken(tokentype.LEFT_PAREN, "("), symToken(tokentype.RIGHT_PAREN, ")"),
+		symToken(tokentype.LEFT_PAREN, "("),
+		strToken(func2Arg0), symToken(tokentype.COMMA, ","),
+		boolToken(func2Arg1), symToken(tokentype.COMMA, ","),
+		strToken(func2Arg2),
+		symToken(tokentype.RIGHT_PAREN, ")"),
+		eofToken(),
+	})
+	tree, err := parser.parseExpression()
+	assert.Nil(t, err)
+
+	call2Result := assertIsCallExpr(t, tree)
+	assert.Len(t, call2Result.Args, 3)
+	call2ResultArg0 := assertIsLiteralExpr(t, call2Result.Args[0])
+	call2ResultArg1 := assertIsLiteralExpr(t, call2Result.Args[1])
+	call2ResultArg2 := assertIsLiteralExpr(t, call2Result.Args[2])
+	assert.Equal(t, func2Arg0, call2ResultArg0.Value)
+	assert.Equal(t, func2Arg1, call2ResultArg1.Value)
+	assert.Equal(t, func2Arg2, call2ResultArg2.Value)
+
+	call1Result := assertIsCallExpr(t, call2Result.Callee)
+	assert.Len(t, call1Result.Args, 0)
+
+	call0Result := assertIsCallExpr(t, call1Result.Callee)
+	assert.Len(t, call0Result.Args, 1)
+	call0ResultArg0 := assertIsLiteralExpr(t, call0Result.Args[0])
+	assert.Equal(t, func0Arg0, call0ResultArg0.Value)
+}
+
+func TestParseExpression_CallExpr_NestedCalls(t *testing.T) {
+	func0Name := "FunctionName0"
+	func1Name := "FunctionName1"
+	func1Arg := 12345
+
+	// FunctionName0(FunctionName1(12345)) <EOF>
+	parser := NewParser([]*token.Token{
+		symToken(tokentype.IDENTIFIER, func0Name),
+		symToken(tokentype.LEFT_PAREN, "("),
+		symToken(tokentype.IDENTIFIER, func1Name),
+		symToken(tokentype.LEFT_PAREN, "("),
+		numToken(func1Arg),
+		symToken(tokentype.RIGHT_PAREN, ")"),
+		symToken(tokentype.RIGHT_PAREN, ")"),
+		eofToken(),
+	})
+	tree, err := parser.parseExpression()
+	assert.Nil(t, err)
+
+	outerCallResult := assertIsCallExpr(t, tree)
+	assert.Len(t, outerCallResult.Args, 1)
+	outerCallResultCallee := assertIsVarExpr(t, outerCallResult.Callee)
+	assert.Equal(t, func0Name, outerCallResultCallee.Name.Lexeme)
+
+	innerCallResult := assertIsCallExpr(t, outerCallResult.Args[0])
+	assert.Len(t, innerCallResult.Args, 1)
+	innerCallResultCallee := assertIsVarExpr(t, innerCallResult.Callee)
+	assert.Equal(t, func1Name, innerCallResultCallee.Name.Lexeme)
+	innerCallResultArg := assertIsLiteralExpr(t, innerCallResult.Args[0])
+	assert.Equal(t, func1Arg, innerCallResultArg.Value)
 }
 
 func TestParseExpression_Equality(t *testing.T) {
