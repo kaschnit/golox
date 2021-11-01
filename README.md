@@ -1,6 +1,6 @@
 # golox
 
-An interpreter for the `lox` programming language, written in go.
+An interpreter for the `Lox` programming language, written in go.
 
 ## Project Root Structure
 
