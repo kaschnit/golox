@@ -4,8 +4,10 @@ import (
 	"github.com/kaschnit/golox/pkg/ast"
 )
 
+// Implementation of AstVisitor that emits bytecode corresponding to the visited AST.
 type AstEmitter struct{}
 
+// Create an AstEmitter.
 func NewAstEmitter() *AstEmitter {
 	return &AstEmitter{}
 }

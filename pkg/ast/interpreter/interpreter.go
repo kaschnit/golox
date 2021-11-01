@@ -10,10 +10,12 @@ import (
 	"github.com/kaschnit/golox/pkg/token/tokentype"
 )
 
+// Implementation of AstVisitor that interprets the visited AST directly
 type AstInterpreter struct {
 	env *environment.Environment
 }
 
+// Create an AstInterpreter.
 func NewAstInterpreter() *AstInterpreter {
 	return &AstInterpreter{
 		env: environment.NewEnvironment(nil),

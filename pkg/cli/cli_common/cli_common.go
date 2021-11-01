@@ -9,6 +9,8 @@ import (
 	"github.com/kaschnit/golox/pkg/scanner"
 )
 
+// Parse the source code in the file located at filepath and apply the visitor to the root
+// of the AST that is produced, visiting each node in the AST.
 func ParseSourceFileAndVisit(visitor ast.AstVisitor, filepath string) error {
 	f, err := os.Open(filepath)
 	defer func() {
@@ -48,6 +50,8 @@ func ParseSourceFileAndVisit(visitor ast.AstVisitor, filepath string) error {
 	return nil
 }
 
+// Parse the line of source code and apply the visitor to the root
+// of the AST that is produced, visiting each node in the AST.
 func ParseLineAndVisit(visitor ast.AstVisitor, line string) error {
 	// Tokenize the input.
 	scanner := scanner.NewScanner(line)

@@ -198,6 +198,7 @@ func (s *Scanner) scanToken() (*token.Token, error) {
 	}
 }
 
+// Tokenize a string.
 func (s *Scanner) scanString() (*token.Token, error) {
 	// Advance the current pointer until EOF or closing quote is encountered.
 	for s.peek(1) != '"' && !s.isAtEnd() {
@@ -222,6 +223,7 @@ func (s *Scanner) scanString() (*token.Token, error) {
 	}, nil
 }
 
+// Tokenize a number.
 func (s *Scanner) scanNumber() (*token.Token, error) {
 	for stringutil.IsRuneNumeric(s.peek(1)) {
 		s.current++
@@ -248,6 +250,7 @@ func (s *Scanner) scanNumber() (*token.Token, error) {
 	}, nil
 }
 
+// Tokenize an identifier.
 func (s *Scanner) scanIdentifier() (*token.Token, error) {
 	for stringutil.IsRuneAlphaNumeric(s.peek(1)) {
 		s.current++

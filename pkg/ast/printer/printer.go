@@ -6,10 +6,12 @@ import (
 	"github.com/kaschnit/golox/pkg/ast"
 )
 
+// Implementation of AstVisitor that prints the visited AST.
 type AstPrinter struct {
 	indent int
 }
 
+// Create an AstPrinter.
 func NewAstPrinter() *AstPrinter {
 	return &AstPrinter{indent: 0}
 }

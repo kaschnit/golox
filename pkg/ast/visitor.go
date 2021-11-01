@@ -1,8 +1,13 @@
 package ast
 
+// An object that can accept an AstVisitor.
+// Implements the "visited" side of the visitor pattern.
 type Visitable interface {
 	Accept(v AstVisitor) (interface{}, error)
 }
+
+// An object that can visit the provided visitable AST nodes.
+// Implements the "visitor" side of the visitor pattern.
 type AstVisitor interface {
 	VisitProgram(*Program) (interface{}, error)
 	VisitPrintStmt(*PrintStmt) (interface{}, error)
