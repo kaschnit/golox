@@ -459,6 +459,14 @@ func TestParseExpression_Comparison(t *testing.T) {
 	testBinaryExpressionWithLiterals(t, symToken(tokentype.LESS_EQUAL, "<="))
 }
 
+func TestParseExpression_LogicalOr(t *testing.T) {
+	testBinaryExpressionWithLiterals(t, symToken(tokentype.OR, "or"))
+}
+
+func TestParseExpression_LogicalAnd(t *testing.T) {
+	testBinaryExpressionWithLiterals(t, symToken(tokentype.AND, "and"))
+}
+
 func TestParseExpression_Term(t *testing.T) {
 	testBinaryExpressionWithLiterals(t, symToken(tokentype.MINUS, "-"))
 	testBinaryExpressionWithLiterals(t, symToken(tokentype.PLUS, "+"))

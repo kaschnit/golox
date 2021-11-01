@@ -353,7 +353,7 @@ func (p *Parser) parseExpression() (ast.Expr, error) {
 
 // Parse an assignment expression.
 func (p *Parser) parseAssignment() (ast.Expr, error) {
-	expr, err := p.parseEquality()
+	expr, err := p.parseLogicalOr()
 	if err != nil {
 		return nil, err
 	}
@@ -374,6 +374,42 @@ func (p *Parser) parseAssignment() (ast.Expr, error) {
 		}
 	}
 	return expr, err
+}
+
+func (p *Parser) parseLogicalOr() (ast.Expr, error) {
+	expr, err := p.parseLogicalAnd()
+	if err != nil {
+		return nil, err
+	}
+
+	for p.peekMatches(1, tokentype.OR) {
+		left := expr
+		operator := p.advance()
+		right, err := p.parseLogicalAnd()
+		if err != nil {
+			return nil, err
+		}
+		expr = &ast.BinaryExpr{Left: left, Operator: operator, Right: right}
+	}
+	return expr, nil
+}
+
+func (p *Parser) parseLogicalAnd() (ast.Expr, error) {
+	expr, err := p.parseEquality()
+	if err != nil {
+		return nil, err
+	}
+
+	for p.peekMatches(1, tokentype.AND) {
+		left := expr
+		operator := p.advance()
+		right, err := p.parseLogicalAnd()
+		if err != nil {
+			return nil, err
+		}
+		expr = &ast.BinaryExpr{Left: left, Operator: operator, Right: right}
+	}
+	return expr, nil
 }
 
 // Parse an equality expression.

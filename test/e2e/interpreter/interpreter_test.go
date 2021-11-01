@@ -1,33 +1,27 @@
 package interpreter_test
 
 import (
-	"fmt"
-	"os/exec"
+	"os"
 	"testing"
 
+	"github.com/kaschnit/golox/test/e2e/testutil"
 	"github.com/stretchr/testify/assert"
 )
 
-const (
-	GO                   = "go"
-	RUN                  = "run"
-	PROJECT_ROOT         = "../../../"
-	INTERPRETER          = "interpreter"
-	SAMPLE_PROGRAMS_ROOT = "../../programs/"
-)
-
-func sourceFilePath(filename string) string {
-	return fmt.Sprintf("%s%s", SAMPLE_PROGRAMS_ROOT, filename)
+func TestMain(m *testing.M) {
+	testutil.BuildTestBinary()
+	exitCode := m.Run()
+	os.Exit(exitCode)
 }
 
-func readOutput(t *testing.T, filename string) (string, error) {
-	cmd := exec.Command(GO, RUN, PROJECT_ROOT, INTERPRETER, sourceFilePath(filename))
-	output, err := cmd.Output()
-	return string(output), err
-}
-
-func Test_HelloWorld(t *testing.T) {
-	result, err := readOutput(t, "helloworld.lox")
+func TestOutput_HelloWorld(t *testing.T) {
+	result, err := testutil.InterpretTestProgram("HelloWorld.lox")
 	assert.Nil(t, err)
 	assert.Equal(t, "Hello, world!", result)
+}
+
+func TestOutput_PowerOfTwo(t *testing.T) {
+	result, err := testutil.InterpretTestProgram("PowerOfTwo.lox")
+	assert.Nil(t, err)
+	assert.Equal(t, "32", result)
 }

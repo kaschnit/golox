@@ -192,8 +192,12 @@ func (a *AstInterpreter) VisitBinaryExpr(e *ast.BinaryExpr) (interface{}, error)
 		} else {
 			return nil, loxerr.NewLoxErrorAtToken(e.Operator, invalidOperatorMsg)
 		}
+	case tokentype.AND:
+		return conversion.IsTruthy(lhs) && conversion.IsTruthy(rhs), nil
+	case tokentype.OR:
+		return conversion.IsTruthy(lhs) || conversion.IsTruthy(rhs), nil
 	default:
-		return nil, loxerr.NewLoxInternalError(fmt.Sprintf("Unknown binary operator %s reached interpreter!", e.Operator.Lexeme))
+		return nil, loxerr.NewLoxInternalError(fmt.Sprintf("Unknown binary operator '%s' reached interpreter!", e.Operator.Lexeme))
 	}
 }
 
