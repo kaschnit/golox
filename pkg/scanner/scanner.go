@@ -234,9 +234,10 @@ func (s *Scanner) scanNumber() (*token.Token, error) {
 	}
 
 	lexeme := s.currentLexeme()
-	literal, err := strconv.ParseFloat(lexeme, 32)
+	literal, err := strconv.ParseFloat(lexeme, 64)
 	if err != nil {
-		return nil, err
+		errMsg := fmt.Sprintf("Failed to parse float %s: %s", lexeme, err)
+		return nil, loxerr.NewLoxInternalError(errMsg)
 	}
 
 	return &token.Token{
