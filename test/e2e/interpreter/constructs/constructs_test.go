@@ -59,7 +59,7 @@ func TestOutput_Construct_NumericArithmeticOperations(t *testing.T) {
 func TestOutput_Construct_NumericComparisonOperations(t *testing.T) {
 	result, err := testutil.InterpretTestProgram("constructs/NumericComparisonOperations.lox")
 	assert.Nil(t, err)
-	assert.Equal(t, "3 -13 60 7.5 2", result)
+	assert.Equal(t, "false true false false true true true false false true false true true false false true", result)
 }
 
 func TestOutput_Construct_Scoping(t *testing.T) {

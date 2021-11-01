@@ -1,0 +1,46 @@
+print 1 > 2; // false
+print " ";
+
+print 2 > 1; // true
+print " ";
+
+print 1 > 1; // false
+print " ";
+
+print 1 >= 2; // false
+print " ";
+
+print 2 >= 1; // true
+print " ";
+
+print 1 >= 1; // true
+print " ";
+
+print 1 < 2; // true
+print " ";
+
+print 2 < 1; // false
+print " ";
+
+print 1 < 1; // false
+print " ";
+
+print 1 <= 2; // true
+print " ";
+
+print 2 <= 1; // false
+print " ";
+
+print 1 <= 1; // true
+print " ";
+
+print 1 == 1; // true
+print " ";
+
+print 1 == 2; // false
+print " ";
+
+print 1 != 1; // false
+print " ";
+
+print 1 != 2; // true
