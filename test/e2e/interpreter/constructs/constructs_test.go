@@ -1,4 +1,4 @@
-package constructs
+package constructs_test
 
 import (
 	"os"

@@ -1,4 +1,4 @@
-package interpreter_test
+package basic_test
 
 import (
 	"os"
@@ -15,13 +15,13 @@ func TestMain(m *testing.M) {
 }
 
 func TestOutput_HelloWorld(t *testing.T) {
-	result, err := testutil.InterpretTestProgram("HelloWorld.lox")
+	result, err := testutil.InterpretTestProgram("basic/HelloWorld.lox")
 	assert.Nil(t, err)
 	assert.Equal(t, "Hello, world!", result)
 }
 
 func TestOutput_PowerOfTwo(t *testing.T) {
-	result, err := testutil.InterpretTestProgram("PowerOfTwo.lox")
+	result, err := testutil.InterpretTestProgram("basic/PowerOfTwo.lox")
 	assert.Nil(t, err)
 	assert.Equal(t, "32", result)
 }
