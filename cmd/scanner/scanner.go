@@ -3,7 +3,7 @@ package scanner
 import (
 	"fmt"
 
-	"github.com/kaschnit/golox/pkg/repl"
+	"github.com/kaschnit/golox/pkg/cli"
 	"github.com/kaschnit/golox/pkg/scanner"
 	"github.com/spf13/cobra"
 )
@@ -34,14 +34,12 @@ func runScannerCmd(_ *cobra.Command, _ []string) {
 }
 
 func startScannerRepl() {
-	repl := repl.NewRepl(func(line string) {
+	repl := cli.NewRepl(func(line string) {
 		// Tokenize the input.
 		scanner := scanner.NewScanner(line)
-		tokens, errs := scanner.ScanAllTokens()
-		if len(errs) > 0 {
-			for i := 0; i < len(errs); i++ {
-				fmt.Println(errs[i])
-			}
+		tokens, err := scanner.ScanAllTokens()
+		if err != nil {
+			fmt.Println(err)
 			return
 		}
 

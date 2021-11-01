@@ -53,21 +53,26 @@ func (s *Scanner) Reset() {
 }
 
 // Tokenize the remaining input that has not been scanned yet.
-func (s *Scanner) ScanAllTokens() ([]*token.Token, []error) {
+func (s *Scanner) ScanAllTokens() ([]*token.Token, error) {
 	tokens := make([]*token.Token, 0)
-	errors := make([]error, 0)
+	errs := make([]error, 0)
 	for !s.finished {
 		nextToken, err := s.ScanToken()
 
 		// Continue scanning even if an error is encountered.
 		if err != nil {
-			errors = append(errors, err)
+			errs = append(errs, err)
 		} else {
 			tokens = append(tokens, nextToken)
 		}
 
 	}
-	return tokens, errors
+
+	if len(errs) > 0 {
+		return tokens, loxerr.NewLoxMultiError(errs)
+	}
+
+	return tokens, nil
 }
 
 // Scan the next token.

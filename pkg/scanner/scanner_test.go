@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"testing"
 
+	loxerr "github.com/kaschnit/golox/pkg/errors"
 	"github.com/kaschnit/golox/pkg/token"
 	"github.com/kaschnit/golox/pkg/token/tokentype"
 	"github.com/stretchr/testify/assert"
@@ -445,7 +446,7 @@ while
 
 func TestScanAllTokens_NoErrors(t *testing.T) {
 	var tokens []*token.Token
-	var errors []error
+	var err error
 
 	input := ` hello
 123
@@ -458,19 +459,19 @@ for    	while
 5*5
 `
 	scanner := NewScanner(input)
-	tokens, errors = scanner.ScanAllTokens()
+	tokens, err = scanner.ScanAllTokens()
 	assert.Len(t, tokens, 13) // The number of tokens in the string, plus an EOF token
-	assert.Len(t, errors, 0)  // All valid input
+	assert.Nil(t, err)
 
-	// Nothing returned when alling it again
-	tokens, errors = scanner.ScanAllTokens()
+	// Nothing returned when calling it again
+	tokens, err = scanner.ScanAllTokens()
 	assert.Len(t, tokens, 0)
-	assert.Len(t, errors, 0)
+	assert.Nil(t, err)
 }
 
 func TestScanAllTokens_RecoversFromErrors(t *testing.T) {
 	var tokens []*token.Token
-	var errors []error
+	var err error
 
 	input := `abc 123 program
 xyz ^^~[ _ {()()} ~
@@ -478,14 +479,16 @@ xyz ^^~[ _ {()()} ~
 
 `
 	scanner := NewScanner(input)
-	tokens, errors = scanner.ScanAllTokens()
+	tokens, err = scanner.ScanAllTokens()
 	assert.Len(t, tokens, 12) // The number of tokens in the string, plus an EOF token
-	assert.Len(t, errors, 5)  // 6 unrecognized characters
+	assert.Error(t, err)
+	assert.IsType(t, &loxerr.LoxMultiError{}, err)
+	assert.Len(t, err.(*loxerr.LoxMultiError).GetErrors(), 5) // 5 unrecognized characters
 
-	// Nothing returned when alling it again
-	tokens, errors = scanner.ScanAllTokens()
+	// Nothing returned when calling it again
+	tokens, err = scanner.ScanAllTokens()
 	assert.Len(t, tokens, 0)
-	assert.Len(t, errors, 0)
+	assert.Nil(t, err)
 }
 
 func TestScanAllTokens_IgnoresComments(t *testing.T) {
@@ -499,7 +502,7 @@ func TestScanAllTokens_IgnoresComments(t *testing.T) {
 	// and finally, the last number
 	5`
 	scanner := NewScanner(input)
-	tokens, errors := scanner.ScanAllTokens()
+	tokens, err := scanner.ScanAllTokens()
 	assert.Len(t, tokens, 6) // The number of tokens in the string, plus an EOF token
-	assert.Len(t, errors, 0) // All valid input
+	assert.Nil(t, err)       // All valid input
 }

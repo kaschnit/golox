@@ -1,9 +1,11 @@
 package parser
 
 import (
+	"fmt"
+
 	"github.com/kaschnit/golox/pkg/ast/printer"
-	"github.com/kaschnit/golox/pkg/repl"
-	"github.com/kaschnit/golox/pkg/repl/repl_common"
+	"github.com/kaschnit/golox/pkg/cli"
+	"github.com/kaschnit/golox/pkg/cli/cli_common"
 	"github.com/spf13/cobra"
 )
 
@@ -26,15 +28,28 @@ func init() {
 	ParserCmd.Flags().BoolVarP(&flags.interactive, "interactive", "i", false, "Run in interactive mode.")
 }
 
-func runParserCmd(_ *cobra.Command, _ []string) {
+func runParserCmd(_ *cobra.Command, args []string) {
 	if flags.interactive {
 		startParserRepl()
+	} else if len(args) > 0 {
+		parseSourceFile(args[0])
+	}
+}
+
+func parseSourceFile(filepath string) {
+	visitor := printer.NewAstPrinter()
+	err := cli_common.ParseSourceFileAndVisit(visitor, filepath)
+	if err != nil {
+		fmt.Println(err)
 	}
 }
 
 func startParserRepl() {
 	visitor := printer.NewAstPrinter()
-	repl.NewRepl(func(line string) {
-		repl_common.ParseLineAndVisit(visitor, line)
+	cli.NewRepl(func(line string) {
+		err := cli_common.ParseLineAndVisit(visitor, line)
+		if err != nil {
+			fmt.Println(err)
+		}
 	}).Start()
 }

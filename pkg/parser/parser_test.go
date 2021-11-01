@@ -238,8 +238,8 @@ func TestParse_EmptyMissingEOF(t *testing.T) {
 func TestParse_OnlyEOF(t *testing.T) {
 	// <EOF>
 	parser := NewParser([]*token.Token{eofToken()})
-	program, errs := parser.Parse()
-	assert.Empty(t, errs)
+	program, err := parser.Parse()
+	assert.Nil(t, err)
 	assert.Empty(t, program.Statements)
 }
 

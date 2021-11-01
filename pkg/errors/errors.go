@@ -59,3 +59,23 @@ func NewLoxInternalError(message string) *LoxInternalError {
 func (e *LoxInternalError) Error() string {
 	return fmt.Sprintf("Internal error: %s", e.message)
 }
+
+type LoxMultiError struct {
+	errors []error
+}
+
+func NewLoxMultiError(errors []error) *LoxMultiError {
+	return &LoxMultiError{errors}
+}
+
+func (e *LoxMultiError) Error() string {
+	errStr := ""
+	for i := 0; i < len(e.errors); i++ {
+		errStr = fmt.Sprintf("%s\n%s", errStr, e.errors[i])
+	}
+	return errStr
+}
+
+func (e *LoxMultiError) GetErrors() []error {
+	return e.errors
+}

@@ -35,17 +35,17 @@ func (p *Parser) Reset() {
 
 // Parse the entire tokenized source code, converting it to an AST
 // with a root of type ast.Program.
-func (p *Parser) Parse() (*ast.Program, []error) {
+func (p *Parser) Parse() (*ast.Program, error) {
 	if numTokens := len(p.tokens); numTokens == 0 {
-		return nil, []error{loxerr.NewLoxErrorAtLine(0, "Expected EOF.")}
+		return nil, loxerr.NewLoxErrorAtLine(0, "Expected EOF.")
 	} else if p.tokens[numTokens-1].Type != tokentype.EOF {
-		return nil, []error{loxerr.NewLoxErrorAtToken(p.tokens[numTokens-1], "Expected EOF.")}
+		return nil, loxerr.NewLoxErrorAtToken(p.tokens[numTokens-1], "Expected EOF.")
 	}
 	return p.parseProgram()
 }
 
 // Parse a program, which is the root of the AST.
-func (p *Parser) parseProgram() (*ast.Program, []error) {
+func (p *Parser) parseProgram() (*ast.Program, error) {
 	errors := make([]error, 0)
 	statements := make([]ast.Stmt, 0)
 	for !p.isAtEnd() {
@@ -57,7 +57,13 @@ func (p *Parser) parseProgram() (*ast.Program, []error) {
 			statements = append(statements, stmt)
 		}
 	}
-	return &ast.Program{Statements: statements}, errors
+
+	program := &ast.Program{Statements: statements}
+	if len(errors) > 0 {
+		return program, loxerr.NewLoxMultiError(errors)
+	} else {
+		return program, nil
+	}
 }
 
 // Parse a statement with the type of statement based on the next token.

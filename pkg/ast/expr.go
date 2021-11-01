@@ -5,7 +5,7 @@ import (
 )
 
 type Expr interface {
-	Accept(v AstVisitor) interface{}
+	Accept(v AstVisitor) (interface{}, error)
 }
 
 type AssignExpr struct {
@@ -13,7 +13,7 @@ type AssignExpr struct {
 	Right Expr
 }
 
-func (e *AssignExpr) Accept(v AstVisitor) interface{} {
+func (e *AssignExpr) Accept(v AstVisitor) (interface{}, error) {
 	return v.VisitAssignExpr(e)
 }
 
@@ -23,7 +23,7 @@ type CallExpr struct {
 	Args      []Expr
 }
 
-func (e *CallExpr) Accept(v AstVisitor) interface{} {
+func (e *CallExpr) Accept(v AstVisitor) (interface{}, error) {
 	return v.VisitCallExpr(e)
 }
 
@@ -33,7 +33,7 @@ type BinaryExpr struct {
 	Right    Expr
 }
 
-func (e *BinaryExpr) Accept(v AstVisitor) interface{} {
+func (e *BinaryExpr) Accept(v AstVisitor) (interface{}, error) {
 	return v.VisitBinaryExpr(e)
 }
 
@@ -42,7 +42,7 @@ type UnaryExpr struct {
 	Right    Expr
 }
 
-func (e *UnaryExpr) Accept(v AstVisitor) interface{} {
+func (e *UnaryExpr) Accept(v AstVisitor) (interface{}, error) {
 	return v.VisitUnaryExpr(e)
 }
 
@@ -50,7 +50,7 @@ type GroupingExpr struct {
 	Expression Expr
 }
 
-func (e *GroupingExpr) Accept(v AstVisitor) interface{} {
+func (e *GroupingExpr) Accept(v AstVisitor) (interface{}, error) {
 	return v.VisitGroupingExpr(e)
 }
 
@@ -58,7 +58,7 @@ type LiteralExpr struct {
 	Value interface{}
 }
 
-func (e *LiteralExpr) Accept(v AstVisitor) interface{} {
+func (e *LiteralExpr) Accept(v AstVisitor) (interface{}, error) {
 	return v.VisitLiteralExpr(e)
 }
 
@@ -66,6 +66,6 @@ type VarExpr struct {
 	Name *token.Token
 }
 
-func (e *VarExpr) Accept(v AstVisitor) interface{} {
+func (e *VarExpr) Accept(v AstVisitor) (interface{}, error) {
 	return v.VisitVarExpr(e)
 }
