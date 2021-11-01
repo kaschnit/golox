@@ -104,6 +104,21 @@ func TestScanTokenKeyword_Success(t *testing.T) {
 	verifyScanTokenSingleKeyword(t, "while", tokentype.WHILE)
 }
 
+func TestResetAfterScanning(t *testing.T) {
+	expected := "hello"
+	input := fmt.Sprintf(`"%s"`, expected)
+	scanner := NewScanner(input)
+	_, err := scanner.ScanAllTokens()
+	assert.Nil(t, err)
+	assert.NotEqual(t, scanner.start, 0)
+
+	scanner.Reset()
+	assert.Equal(t, scanner.start, 0)
+	_, err = scanner.ScanAllTokens()
+	assert.Nil(t, err)
+	assert.NotEqual(t, scanner.start, 0)
+}
+
 func TestScanTokenString_BasicString(t *testing.T) {
 	expected := "hello"
 	input := fmt.Sprintf(`"%s"`, expected)
