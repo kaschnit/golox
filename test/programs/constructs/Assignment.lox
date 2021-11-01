@@ -1,0 +1,7 @@
+var x = -12;
+print x; // -12
+
+print " ";
+
+x = 398;
+print x; // 398

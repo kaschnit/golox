@@ -1,0 +1,13 @@
+print false and false; // false
+print " ";
+
+print false and true; // false
+print " ";
+
+print true and false; // false
+print " ";
+
+print true and true; // true
+print " ";
+
+print true and false and true; // false

@@ -1,0 +1,5 @@
+var total = 1;
+for (var counter = 0; counter < 5; counter = counter + 1) {
+	total = total * 2;
+}
+print total; // 2^5 which is 32

@@ -1,0 +1,9 @@
+for (var counter = 0; counter < 6; counter = counter + 1) {
+	print counter;
+	print " ";
+}
+
+for (var counter = 4; counter > 0; counter = counter - 2) {
+	print "Text";
+	print " ";
+}

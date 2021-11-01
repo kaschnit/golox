@@ -1,0 +1,13 @@
+print 1 + 2; // 3
+print " ";
+
+print 39 - 52; // -13
+print " ";
+
+print 20 * 3; // 60
+print " ";
+
+print 15 / 2; // 7.5
+print " ";
+
+print 100 / 50; // 2
