@@ -84,14 +84,3 @@ func FromIdentifier(identifier string) TokenType {
 		return IDENTIFIER
 	}
 }
-
-func ConstantLiteralValue(tokenType TokenType) interface{} {
-	switch tokenType {
-	case TRUE:
-		return true
-	case FALSE:
-		return false
-	default:
-		return nil
-	}
-}
