@@ -26,6 +26,12 @@ func TestOutput_Construct_ForLoop(t *testing.T) {
 	assert.Equal(t, "0 1 2 3 4 5 Text Text ", result)
 }
 
+func TestOutput_Construct_GlobalClosure(t *testing.T) {
+	result, err := testutil.InterpretTestProgram("constructs/GlobalClosure.lox")
+	assert.Nil(t, err)
+	assert.Equal(t, "112", result)
+}
+
 func TestOutput_Construct_IfElseIf(t *testing.T) {
 	result, err := testutil.InterpretTestProgram("constructs/IfElseIf.lox")
 	assert.Nil(t, err)

@@ -7,29 +7,29 @@ import (
 	"github.com/kaschnit/golox/pkg/token/tokentype"
 )
 
+func getWhere(t *token.Token) string {
+	if t.Type == tokentype.EOF {
+		return "at end"
+	}
+	return fmt.Sprintf("at '%s'", t.Lexeme)
+}
+
 type LoxErrorAtToken struct {
 	token   *token.Token
 	where   string
 	message string
 }
 
-func NewLoxErrorAtToken(t *token.Token, message string) *LoxErrorAtToken {
-	var where string
-	if t.Type == tokentype.EOF {
-		where = " at end"
-	} else {
-		where = fmt.Sprintf(" at '%s'", t.Lexeme)
-	}
-
+func AtToken(t *token.Token, message string) *LoxErrorAtToken {
 	return &LoxErrorAtToken{
 		token:   t,
-		where:   where,
+		where:   getWhere(t),
 		message: message,
 	}
 }
 
 func (e *LoxErrorAtToken) Error() string {
-	return fmt.Sprintf("[line %d] Error%s: %s", e.token.Line, e.where, e.message)
+	return fmt.Sprintf("[line %d] Error %s: %s", e.token.Line, e.where, e.message)
 }
 
 type LoxErrorAtLine struct {
@@ -37,7 +37,7 @@ type LoxErrorAtLine struct {
 	message string
 }
 
-func NewLoxErrorAtLine(line int, message string) *LoxErrorAtLine {
+func AtLine(line int, message string) *LoxErrorAtLine {
 	return &LoxErrorAtLine{
 		line:    line,
 		message: message,
@@ -52,7 +52,7 @@ type LoxInternalError struct {
 	message string
 }
 
-func NewLoxInternalError(message string) *LoxInternalError {
+func Internal(message string) *LoxInternalError {
 	return &LoxInternalError{message}
 }
 
@@ -60,11 +60,29 @@ func (e *LoxInternalError) Error() string {
 	return fmt.Sprintf("Internal error: %s", e.message)
 }
 
+type LoxRuntimeError struct {
+	token   *token.Token
+	where   string
+	message string
+}
+
+func Runtime(t *token.Token, message string) *LoxRuntimeError {
+	return &LoxRuntimeError{
+		token:   t,
+		where:   getWhere(t),
+		message: message,
+	}
+}
+
+func (e *LoxRuntimeError) Error() string {
+	return fmt.Sprintf("[line %d] Runtime error %s: %s", e.token.Line, e.where, e.message)
+}
+
 type LoxMultiError struct {
 	errors []error
 }
 
-func NewLoxMultiError(errors []error) *LoxMultiError {
+func Multi(errors []error) *LoxMultiError {
 	return &LoxMultiError{errors}
 }
 

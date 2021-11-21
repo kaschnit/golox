@@ -6,15 +6,17 @@ type Environment struct {
 	vars   map[string]interface{}
 }
 
-// Create a new Scope.
+// Create a new Environment.
 func NewEnvironment(parent *Environment) *Environment {
-	return &Environment{
-		parent: parent,
-		vars:   make(map[string]interface{}),
-	}
+	return NewEnvironmentWithVars(parent, make(map[string]interface{}))
 }
 
-// Find the variable with name varName by traversing the scope upwards.
+// Create a new environment with the variables defined.
+func NewEnvironmentWithVars(parent *Environment, vars map[string]interface{}) *Environment {
+	return &Environment{parent, vars}
+}
+
+// Find the variable with name varName by traversing the environments upwards.
 func (e *Environment) GetTraverse(varName string) (interface{}, bool) {
 	for currentEnv := e; currentEnv != nil; currentEnv = currentEnv.parent {
 		if value, exists := currentEnv.Get(varName); exists {
@@ -29,7 +31,15 @@ func (e *Environment) Get(varName string) (interface{}, bool) {
 	return val, exists
 }
 
-// Update the existing variable with name varName by traversing the scope upwards.
+func (e *Environment) GetAt(varName string, distance int) interface{} {
+	currentEnv := e
+	for i := 0; i < distance; i++ {
+		currentEnv = currentEnv.parent
+	}
+	return currentEnv.vars[varName]
+}
+
+// Update the existing variable with name varName by traversing the environments upwards.
 func (e *Environment) ReplaceTraverse(varName string, val interface{}) bool {
 	for currentEnv := e; currentEnv != nil; currentEnv = currentEnv.parent {
 		if _, exists := currentEnv.Get(varName); exists {

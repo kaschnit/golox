@@ -11,7 +11,7 @@ import (
 
 // Parse the source code in the file located at filepath and apply the visitor to the root
 // of the AST that is produced, visiting each node in the AST.
-func ParseSourceFileAndVisit(visitor ast.AstVisitor, filepath string) error {
+func ParseSourceFileAndVisit(filepath string, visitors ...ast.AstVisitor) error {
 	f, err := os.Open(filepath)
 	defer func() {
 		err := f.Close()
@@ -42,9 +42,11 @@ func ParseSourceFileAndVisit(visitor ast.AstVisitor, filepath string) error {
 		return err
 	}
 
-	_, err = visitor.VisitProgram(programAst)
-	if err != nil {
-		return err
+	for _, visitor := range visitors {
+		_, err = visitor.VisitProgram(programAst)
+		if err != nil {
+			return err
+		}
 	}
 
 	return nil
@@ -52,7 +54,7 @@ func ParseSourceFileAndVisit(visitor ast.AstVisitor, filepath string) error {
 
 // Parse the line of source code and apply the visitor to the root
 // of the AST that is produced, visiting each node in the AST.
-func ParseLineAndVisit(visitor ast.AstVisitor, line string) error {
+func ParseLineAndVisit(line string, visitors ...ast.AstVisitor) error {
 	// Tokenize the input.
 	scanner := scanner.NewScanner(line)
 	tokens, err := scanner.ScanAllTokens()
@@ -68,9 +70,11 @@ func ParseLineAndVisit(visitor ast.AstVisitor, line string) error {
 	}
 
 	// Visit the AST.
-	_, err = programAst.Accept(visitor)
-	if err != nil {
-		return err
+	for _, visitor := range visitors {
+		_, err = programAst.Accept(visitor)
+		if err != nil {
+			return err
+		}
 	}
 
 	return nil

@@ -37,9 +37,9 @@ func (p *Parser) Reset() {
 // with a root of type ast.Program.
 func (p *Parser) Parse() (*ast.Program, error) {
 	if numTokens := len(p.tokens); numTokens == 0 {
-		return nil, loxerr.NewLoxErrorAtLine(0, "Expected EOF.")
+		return nil, loxerr.AtLine(0, "Expected EOF.")
 	} else if p.tokens[numTokens-1].Type != tokentype.EOF {
-		return nil, loxerr.NewLoxErrorAtToken(p.tokens[numTokens-1], "Expected EOF.")
+		return nil, loxerr.AtToken(p.tokens[numTokens-1], "Expected EOF.")
 	}
 	return p.parseProgram()
 }
@@ -60,7 +60,7 @@ func (p *Parser) parseProgram() (*ast.Program, error) {
 
 	program := &ast.Program{Statements: statements}
 	if len(errors) > 0 {
-		return program, loxerr.NewLoxMultiError(errors)
+		return program, loxerr.Multi(errors)
 	} else {
 		return program, nil
 	}
@@ -74,6 +74,9 @@ func (p *Parser) parseStatement() (ast.Stmt, error) {
 	case tokentype.PRINT:
 		p.advance()
 		return p.parsePrintStatement()
+	case tokentype.RETURN:
+		p.advance()
+		return p.parseReturnStatement()
 	case tokentype.IF:
 		p.advance()
 		return p.parseIfStatement()
@@ -83,6 +86,9 @@ func (p *Parser) parseStatement() (ast.Stmt, error) {
 	case tokentype.FOR:
 		p.advance()
 		return p.parseForStatement()
+	case tokentype.FUN:
+		p.advance()
+		return p.parseFunctionStatement()
 	case tokentype.VAR:
 		p.advance()
 		return p.parseVarStatement()
@@ -101,11 +107,31 @@ func (p *Parser) parsePrintStatement() (*ast.PrintStmt, error) {
 		return nil, err
 	}
 
-	err = p.consume(tokentype.SEMICOLON, "Expected ';' after expression.")
+	_, err = p.consume(tokentype.SEMICOLON, "Expected ';' after expression.")
 	if err != nil {
 		return nil, err
 	}
 	return &ast.PrintStmt{Expression: printExpr}, nil
+}
+
+func (p *Parser) parseReturnStatement() (*ast.ReturnStmt, error) {
+	var expr ast.Expr
+	var err error
+	if !p.peekMatches(1, tokentype.SEMICOLON) {
+		expr, err = p.parseExpression()
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	_, err = p.consume(tokentype.SEMICOLON, "Expected ';' after expression.")
+	if err != nil {
+		return nil, err
+	}
+
+	return &ast.ReturnStmt{
+		Expression: expr,
+	}, nil
 }
 
 // Parse an expression statement.
@@ -122,7 +148,7 @@ func (p *Parser) parseExpressionStatement() (*ast.ExprStmt, error) {
 		return nil, err
 	}
 
-	err = p.consume(tokentype.SEMICOLON, "Expected ';' after expression.")
+	_, err = p.consume(tokentype.SEMICOLON, "Expected ';' after expression.")
 	if err != nil {
 		return nil, err
 	}
@@ -134,7 +160,7 @@ func (p *Parser) parseIfStatement() (*ast.IfStmt, error) {
 	var err error
 
 	// Parse the parenthesized condition.
-	err = p.consume(tokentype.LEFT_PAREN, "Expected '(' after 'if'.")
+	_, err = p.consume(tokentype.LEFT_PAREN, "Expected '(' after 'if'.")
 	if err != nil {
 		return nil, err
 	}
@@ -142,7 +168,7 @@ func (p *Parser) parseIfStatement() (*ast.IfStmt, error) {
 	if err != nil {
 		return nil, err
 	}
-	err = p.consume(tokentype.RIGHT_PAREN, "Expected ')' after condition.")
+	_, err = p.consume(tokentype.RIGHT_PAREN, "Expected ')' after condition.")
 	if err != nil {
 		return nil, err
 	}
@@ -174,7 +200,7 @@ func (p *Parser) parseIfStatement() (*ast.IfStmt, error) {
 func (p *Parser) parseWhileStatement() (*ast.WhileStmt, error) {
 	var err error
 
-	err = p.consume(tokentype.LEFT_PAREN, "Expected '(' after 'while'.")
+	_, err = p.consume(tokentype.LEFT_PAREN, "Expected '(' after 'while'.")
 	if err != nil {
 		return nil, err
 	}
@@ -182,7 +208,7 @@ func (p *Parser) parseWhileStatement() (*ast.WhileStmt, error) {
 	if err != nil {
 		return nil, err
 	}
-	err = p.consume(tokentype.RIGHT_PAREN, "Expected ')' after condition.")
+	_, err = p.consume(tokentype.RIGHT_PAREN, "Expected ')' after condition.")
 	if err != nil {
 		return nil, err
 	}
@@ -209,7 +235,7 @@ func (p *Parser) parseForStatement() (ast.Stmt, error) {
 	var err error
 	var nextToken *token.Token
 
-	err = p.consume(tokentype.LEFT_PAREN, "Expected '(' after 'for'.")
+	_, err = p.consume(tokentype.LEFT_PAREN, "Expected '(' after 'for'.")
 	if err != nil {
 		return nil, err
 	}
@@ -243,7 +269,7 @@ func (p *Parser) parseForStatement() (ast.Stmt, error) {
 	}
 
 	// Needs to be a ';' after the condition.
-	err = p.consume(tokentype.SEMICOLON, "Expect ';' after loop condition.")
+	_, err = p.consume(tokentype.SEMICOLON, "Expect ';' after loop condition.")
 	if err != nil {
 		return nil, err
 	}
@@ -259,7 +285,7 @@ func (p *Parser) parseForStatement() (ast.Stmt, error) {
 	}
 
 	// Needs to be a ')' before the loop body.
-	err = p.consume(tokentype.RIGHT_PAREN, "Expected ')' after loop increment.")
+	_, err = p.consume(tokentype.RIGHT_PAREN, "Expected ')' after loop increment.")
 	if err != nil {
 		return nil, err
 	}
@@ -306,24 +332,77 @@ func (p *Parser) parseBlockStatement() (*ast.BlockStmt, error) {
 		}
 		statements = append(statements, statement)
 	}
-	err := p.consume(tokentype.RIGHT_BRACE, "Expected '}' after block.")
+	_, err := p.consume(tokentype.RIGHT_BRACE, "Expected '}' after block.")
 	if err != nil {
 		return nil, err
 	}
 	return &ast.BlockStmt{Statements: statements}, nil
 }
 
+// Parse a func statement.
+func (p *Parser) parseFunctionStatement() (*ast.FunctionStmt, error) {
+	// Function declaration starts with the function's name.
+	symbol, err := p.consume(tokentype.IDENTIFIER, "Expected identifier after 'fun'.")
+	if err != nil {
+		return nil, err
+	}
+
+	// Parse the args within the parentheses.
+	_, err = p.consume(tokentype.LEFT_PAREN, "Expected '('.")
+	if err != nil {
+		return nil, err
+	}
+
+	args := make([]*token.Token, 0)
+	if p.peekMatches(1, tokentype.RIGHT_PAREN) {
+		// No args, move on.
+		p.advance()
+	} else {
+		// Parse the args.
+		for {
+			arg, err := p.consume(tokentype.IDENTIFIER, "Expected identifier")
+			if err != nil {
+				return nil, err
+			}
+			args = append(args, arg)
+
+			nextSep := p.advance()
+			if nextSep.Type == tokentype.RIGHT_PAREN {
+				break
+			} else if nextSep.Type != tokentype.COMMA {
+				return nil, loxerr.AtToken(nextSep, "Expected ')' after args.")
+			}
+		}
+	}
+
+	// After args is the function body starting with '{'.
+	_, err = p.consume(tokentype.LEFT_BRACE, "Expected '{'.")
+	if err != nil {
+		return nil, err
+	}
+
+	// Parse the function body.
+	funcBody, err := p.parseBlockStatement()
+	if err != nil {
+		return nil, err
+	}
+
+	return &ast.FunctionStmt{
+		Symbol: symbol,
+		Args:   args,
+		Body:   funcBody,
+	}, nil
+}
+
 // Parse a var statement.
 func (p *Parser) parseVarStatement() (*ast.VarStmt, error) {
 	// LHS of the var declaration.
-	lhsToken := p.peek(1)
-	if lhsToken.Type != tokentype.IDENTIFIER {
-		return nil, loxerr.NewLoxErrorAtToken(p.peek(1), "Expected identifier after 'var'.")
+	lhsToken, err := p.consume(tokentype.IDENTIFIER, "Expected identifier after 'var'.")
+	if err != nil {
+		return nil, err
 	}
-	p.advance()
 
 	var rhs ast.Expr
-	var err error
 
 	// Optional RHS of the declaration.
 	if p.peek(1).Type == tokentype.EQUAL {
@@ -335,7 +414,7 @@ func (p *Parser) parseVarStatement() (*ast.VarStmt, error) {
 	}
 
 	// Declaration is a statement that must be terminated with a semicolon.
-	err = p.consume(tokentype.SEMICOLON, "Expected ';'.")
+	_, err = p.consume(tokentype.SEMICOLON, "Expected ';'.")
 	if err != nil {
 		return nil, err
 	}
@@ -370,7 +449,7 @@ func (p *Parser) parseAssignment() (ast.Expr, error) {
 		if varExpr, ok := expr.(*ast.VarExpr); ok {
 			expr, err = &ast.AssignExpr{Left: varExpr.Name, Right: right}, nil
 		} else {
-			expr, err = nil, loxerr.NewLoxErrorAtToken(equalsToken, "Invalid assignment target.")
+			expr, err = nil, loxerr.AtToken(equalsToken, "Invalid assignment target.")
 		}
 	}
 	return expr, err
@@ -520,7 +599,11 @@ func (p *Parser) parseCall() (ast.Expr, error) {
 
 		// Extract the args for this call, if any.
 		args := []ast.Expr{}
-		if !p.peekMatches(1, tokentype.RIGHT_PAREN) {
+		if p.peekMatches(1, tokentype.RIGHT_PAREN) {
+			// No args, move on.
+			p.advance()
+		} else {
+			// Parse the args.
 			for {
 				arg, err := p.parseExpression()
 				if err != nil {
@@ -535,11 +618,9 @@ func (p *Parser) parseCall() (ast.Expr, error) {
 				if nextSep.Type == tokentype.RIGHT_PAREN {
 					break
 				} else if nextSep.Type != tokentype.COMMA {
-					return nil, loxerr.NewLoxErrorAtToken(nextSep, "Expected ')' after call.")
+					return nil, loxerr.AtToken(nextSep, "Expected ')' after call.")
 				}
 			}
-		} else {
-			p.advance()
 		}
 
 		// The current call becomes the callee of the next call.
@@ -579,24 +660,24 @@ func (p *Parser) parsePrimary() (ast.Expr, error) {
 			return nil, err
 		}
 
-		err = p.consume(tokentype.RIGHT_PAREN, "Expected ')' after expression.")
+		_, err = p.consume(tokentype.RIGHT_PAREN, "Expected ')' after expression.")
 		if err != nil {
 			return nil, err
 		}
 		return &ast.GroupingExpr{Expression: expr}, nil
 	} else {
-		return nil, loxerr.NewLoxErrorAtToken(p.peek(1), "Expected expression.")
+		return nil, loxerr.AtToken(p.peek(1), "Expected expression.")
 	}
 }
 
 // Advance the current pointer to the next token if it matches typeToMatch.
-func (p *Parser) consume(typeToMatch tokentype.TokenType, errorMessage string) error {
+func (p *Parser) consume(typeToMatch tokentype.TokenType, errorMessage string) (*token.Token, error) {
 	nextToken := p.peek(1)
 	if nextToken.Type == typeToMatch {
 		p.current++
-		return nil
+		return nextToken, nil
 	}
-	return loxerr.NewLoxErrorAtToken(nextToken, errorMessage)
+	return nil, loxerr.AtToken(nextToken, errorMessage)
 }
 
 // Advance the current pointer to the next token.

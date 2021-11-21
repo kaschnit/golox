@@ -16,6 +16,15 @@ func (s *PrintStmt) Accept(v AstVisitor) (interface{}, error) {
 	return v.VisitPrintStmt(s)
 }
 
+// Represents a return statement AS node.
+type ReturnStmt struct {
+	Expression Expr
+}
+
+func (s *ReturnStmt) Accept(v AstVisitor) (interface{}, error) {
+	return v.VisitReturnStmt(s)
+}
+
 // Represents an expression statement AST node.
 type ExprStmt struct {
 	Expression Expr
@@ -53,6 +62,17 @@ type BlockStmt struct {
 
 func (s *BlockStmt) Accept(v AstVisitor) (interface{}, error) {
 	return v.VisitBlockStmt(s)
+}
+
+// Represents a function declaration statement AST node.
+type FunctionStmt struct {
+	Symbol *token.Token
+	Args   []*token.Token
+	Body   *BlockStmt
+}
+
+func (s *FunctionStmt) Accept(v AstVisitor) (interface{}, error) {
+	return v.VisitFunctionStmt(s)
 }
 
 // Represents a var declaration statement AST node.

@@ -31,6 +31,14 @@ func (p *AstPrinter) VisitPrintStmt(s *ast.PrintStmt) (interface{}, error) {
 	return nil, nil
 }
 
+func (p *AstPrinter) VisitReturnStmt(s *ast.ReturnStmt) (interface{}, error) {
+	p.printTabbing()
+	fmt.Print("(return ")
+	s.Expression.Accept(p)
+	fmt.Println(");")
+	return nil, nil
+}
+
 func (p *AstPrinter) VisitExprStmt(s *ast.ExprStmt) (interface{}, error) {
 	p.printTabbing()
 	fmt.Print("(")
@@ -76,6 +84,12 @@ func (p *AstPrinter) VisitBlockStmt(s *ast.BlockStmt) (interface{}, error) {
 	p.indent--
 	p.printTabbing()
 	fmt.Println("}")
+	return nil, nil
+}
+
+func (p *AstPrinter) VisitFunctionStmt(s *ast.FunctionStmt) (interface{}, error) {
+	p.printTabbing()
+	fmt.Println("(func)")
 	return nil, nil
 }
 

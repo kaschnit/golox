@@ -69,7 +69,7 @@ func (s *Scanner) ScanAllTokens() ([]*token.Token, error) {
 	}
 
 	if len(errs) > 0 {
-		return tokens, loxerr.NewLoxMultiError(errs)
+		return tokens, loxerr.Multi(errs)
 	}
 
 	return tokens, nil
@@ -78,7 +78,7 @@ func (s *Scanner) ScanAllTokens() ([]*token.Token, error) {
 // Scan the next token.
 func (s *Scanner) ScanToken() (*token.Token, error) {
 	if s.finished {
-		return nil, loxerr.NewLoxInternalError("Scanner has already reached EOF")
+		return nil, loxerr.Internal("Scanner has already reached EOF")
 	}
 
 	s.start = s.current
@@ -194,7 +194,7 @@ func (s *Scanner) scanToken() (*token.Token, error) {
 		}
 		s.hasError = true
 		errMsg := fmt.Sprintf("Unrecognized character %s", string(char))
-		return nil, loxerr.NewLoxErrorAtLine(s.line, errMsg)
+		return nil, loxerr.AtLine(s.line, errMsg)
 	}
 }
 
@@ -209,7 +209,7 @@ func (s *Scanner) scanString() (*token.Token, error) {
 	}
 
 	if s.isAtEnd() {
-		return nil, loxerr.NewLoxErrorAtLine(s.line, "Unterminated string.")
+		return nil, loxerr.AtLine(s.line, "Unterminated string.")
 	}
 
 	// Increment the current pointer past the closing '"'
@@ -239,7 +239,7 @@ func (s *Scanner) scanNumber() (*token.Token, error) {
 	literal, err := strconv.ParseFloat(lexeme, 64)
 	if err != nil {
 		errMsg := fmt.Sprintf("Failed to parse float %s: %s", lexeme, err)
-		return nil, loxerr.NewLoxInternalError(errMsg)
+		return nil, loxerr.Internal(errMsg)
 	}
 
 	return &token.Token{

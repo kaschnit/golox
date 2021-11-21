@@ -1,0 +1,13 @@
+var x = 1;
+
+fun outputX() {
+	print x;
+}
+
+outputX(); // 1
+
+{
+	var x = 2;
+	outputX(); // 1
+	print x; // 2
+}

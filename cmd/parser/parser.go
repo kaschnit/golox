@@ -38,7 +38,7 @@ func runParserCmd(_ *cobra.Command, args []string) {
 
 func parseSourceFile(filepath string) {
 	visitor := printer.NewAstPrinter()
-	err := cli_common.ParseSourceFileAndVisit(visitor, filepath)
+	err := cli_common.ParseSourceFileAndVisit(filepath, visitor)
 	if err != nil {
 		fmt.Println(err)
 	}
@@ -47,7 +47,7 @@ func parseSourceFile(filepath string) {
 func startParserRepl() {
 	visitor := printer.NewAstPrinter()
 	cli.NewRepl(func(line string) {
-		err := cli_common.ParseLineAndVisit(visitor, line)
+		err := cli_common.ParseLineAndVisit(line, visitor)
 		if err != nil {
 			fmt.Println(err)
 		}
