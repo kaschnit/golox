@@ -1,6 +1,6 @@
 FROM golang:1.19.4-alpine AS builder
 
-RUN apk add --update make
+RUN apk add --update make build-base
 
 WORKDIR /app
 
