@@ -1,6 +1,7 @@
 package constructs_test
 
 import (
+	"fmt"
 	"os"
 	"testing"
 
@@ -29,7 +30,7 @@ func TestOutput_Construct_ForLoop(t *testing.T) {
 func TestOutput_Construct_GlobalClosure(t *testing.T) {
 	result, err := testutil.InterpretTestProgram("constructs/GlobalClosure.lox")
 	assert.Nil(t, err)
-	assert.Equal(t, "112", result)
+	assert.Equal(t, "1112 334", result)
 }
 
 func TestOutput_Construct_IfElse(t *testing.T) {
@@ -45,6 +46,7 @@ func TestOutput_Construct_IfElseIf(t *testing.T) {
 }
 
 func TestOutput_Construct_LocalClosure(t *testing.T) {
+	fmt.Println(testutil.ParseTestProgram("constructs/LocalClosure.lox"))
 	result, err := testutil.InterpretTestProgram("constructs/LocalClosure.lox")
 	assert.Nil(t, err)
 	assert.Equal(t, "HelloHello15", result)

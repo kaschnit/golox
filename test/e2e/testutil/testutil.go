@@ -29,6 +29,14 @@ func RunTestBinary(args ...string) (string, error) {
 	return string(output), err
 }
 
+func ScanTestProgram(programName string) (string, error) {
+	return RunTestBinary(testconst.SCANNER_CMD, GetTestProgramPath(programName))
+}
+
+func ParseTestProgram(programName string) (string, error) {
+	return RunTestBinary(testconst.PARSER_CMD, GetTestProgramPath(programName))
+}
+
 func InterpretTestProgram(programName string) (string, error) {
 	return RunTestBinary(testconst.INTERPRETER_CMD, GetTestProgramPath(programName))
 }

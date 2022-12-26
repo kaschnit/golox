@@ -89,7 +89,8 @@ func (p *AstPrinter) VisitBlockStmt(s *ast.BlockStmt) (interface{}, error) {
 
 func (p *AstPrinter) VisitFunctionStmt(s *ast.FunctionStmt) (interface{}, error) {
 	p.printTabbing()
-	fmt.Println("(func)")
+	fmt.Printf("(func %s)\n", s.Name.Lexeme)
+	s.Body.Accept(p)
 	return nil, nil
 }
 

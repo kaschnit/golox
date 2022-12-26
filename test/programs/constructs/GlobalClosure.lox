@@ -7,7 +7,18 @@ fun outputX() {
 outputX(); // 1
 
 {
+    print x; // 1
 	var x = 2;
 	outputX(); // 1
 	print x; // 2
+}
+
+print " "; // " "
+
+{
+    x = 3;
+    outputX(); // 3
+    var x = 4;
+    outputX(); // 3
+    print x; // 4
 }
