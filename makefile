@@ -3,6 +3,7 @@
 install:
 	go mod download
 	go install golang.org/x/tools/cmd/stringer@latest
+	go get golang.org/x/tools/cmd/stringer@latest
 
 generate:
 	go generate ./...
