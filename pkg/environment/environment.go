@@ -11,19 +11,9 @@ func NewEnvironment(parent *Environment) *Environment {
 	return NewEnvironmentWithVars(parent, make(map[string]interface{}))
 }
 
-// Create a new environment with the variables defined.
+// Create a new environment with variables defined.
 func NewEnvironmentWithVars(parent *Environment, vars map[string]interface{}) *Environment {
 	return &Environment{parent, vars}
-}
-
-// Find the variable with name varName by traversing the environments upwards.
-func (e *Environment) GetTraverse(varName string) (interface{}, bool) {
-	for currentEnv := e; currentEnv != nil; currentEnv = currentEnv.parent {
-		if value, exists := currentEnv.Get(varName); exists {
-			return value, true
-		}
-	}
-	return nil, false
 }
 
 func (e *Environment) Get(varName string) (interface{}, bool) {
@@ -32,20 +22,13 @@ func (e *Environment) Get(varName string) (interface{}, bool) {
 }
 
 func (e *Environment) GetAt(varName string, distance int) interface{} {
-	currentEnv := e
-	for i := 0; i < distance; i++ {
-		currentEnv = currentEnv.parent
-	}
-	return currentEnv.vars[varName]
+	return e.ancestor(distance).vars[varName]
 }
 
-// Update the existing variable with name varName by traversing the environments upwards.
-func (e *Environment) ReplaceTraverse(varName string, val interface{}) bool {
-	for currentEnv := e; currentEnv != nil; currentEnv = currentEnv.parent {
-		if _, exists := currentEnv.Get(varName); exists {
-			currentEnv.Set(varName, val)
-			return true
-		}
+func (e *Environment) Replace(varName string, val interface{}) bool {
+	if _, exists := e.Get(varName); exists {
+		e.Set(varName, val)
+		return true
 	}
 	return false
 }
@@ -54,6 +37,18 @@ func (e *Environment) Set(varName string, val interface{}) {
 	e.vars[varName] = val
 }
 
+func (e *Environment) SetAt(varName string, distance int, val interface{}) {
+	e.ancestor(distance).vars[varName] = val
+}
+
 func (e *Environment) Fork() *Environment {
 	return NewEnvironment(e)
+}
+
+func (e *Environment) ancestor(distance int) *Environment {
+	currentEnv := e
+	for i := 0; i < distance; i++ {
+		currentEnv = currentEnv.parent
+	}
+	return currentEnv
 }

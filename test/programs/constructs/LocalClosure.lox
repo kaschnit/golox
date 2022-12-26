@@ -1,0 +1,22 @@
+fun runClosure() {
+
+	var x = "Hello";
+
+	fun closure1() {
+		return x;
+	}
+
+	fun closure2() {
+		print closure1(); // "Hello"
+
+		var x = 15;
+
+		print closure1(); // "Hello"
+
+		print x; // 15
+	}
+
+	closure2();
+}
+
+runClosure();

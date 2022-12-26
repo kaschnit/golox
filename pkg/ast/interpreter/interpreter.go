@@ -105,12 +105,13 @@ func (a *AstInterpreter) VisitBlockStmt(s *ast.BlockStmt) (interface{}, error) {
 }
 
 func (a *AstInterpreter) VisitFunctionStmt(s *ast.FunctionStmt) (interface{}, error) {
-	funcName := s.Symbol.Lexeme
+	loxFunc := NewLoxFunction(s, a.env)
+	funcName := s.Name.Lexeme
 	_, exists := a.env.Get(funcName)
 	if exists {
-		return nil, loxerr.Runtime(s.Symbol, fmt.Sprintf("Name '%s' already defined", funcName))
+		return nil, loxerr.Runtime(s.Name, fmt.Sprintf("Name '%s' already defined", funcName))
 	}
-	a.env.Set(funcName, NewLoxFunction(s))
+	a.env.Set(funcName, loxFunc)
 	return nil, nil
 }
 
@@ -131,17 +132,22 @@ func (a *AstInterpreter) VisitVarStmt(s *ast.VarStmt) (interface{}, error) {
 
 func (a *AstInterpreter) VisitAssignExpr(e *ast.AssignExpr) (interface{}, error) {
 	varName := e.Left.Lexeme
-	_, exists := a.env.GetTraverse(varName)
-	if !exists {
-		return nil, loxerr.Runtime(e.Left, fmt.Sprintf("Variable '%s' not defined", varName))
-	}
 
 	value, err := e.Right.Accept(a)
 	if err != nil {
 		return nil, err
 	}
 
-	a.env.ReplaceTraverse(varName, value)
+	if distance, ok := a.localResolution[e]; ok {
+		a.env.SetAt(e.Left.Lexeme, distance, value)
+		return value, nil
+	}
+
+	exists := a.globals.Replace(varName, value)
+	if !exists {
+		return nil, loxerr.Runtime(e.Left, fmt.Sprintf("Variable '%s' not defined", e.Left.Lexeme))
+	}
+
 	return value, nil
 }
 
@@ -153,7 +159,8 @@ func (a *AstInterpreter) VisitCallExpr(e *ast.CallExpr) (interface{}, error) {
 
 	callable, ok := callee.(Callable)
 	if !ok {
-		return nil, loxerr.Runtime(e.OpenParen, "Expression is not callable")
+		return nil, loxerr.Runtime(e.OpenParen,
+			fmt.Sprintf("Expression '%v' is not callable", callee))
 	}
 
 	if len(e.Args) != callable.Arity() {
@@ -285,14 +292,14 @@ func (a *AstInterpreter) VisitLiteralExpr(e *ast.LiteralExpr) (interface{}, erro
 }
 
 func (a *AstInterpreter) VisitVarExpr(e *ast.VarExpr) (interface{}, error) {
-	return a.findVar(e.Name, e)
+	result, err := a.findVar(e.Name, e)
+	return result, err
 }
 
 // Execute the statements in a block statement using the provided environment.
 func (a *AstInterpreter) ExecuteBlock(block *ast.BlockStmt, env *environment.Environment) error {
 	prevEnv := a.env
 	a.env = env
-	defer func() { a.env = prevEnv }()
 
 	for i := 0; i < len(block.Statements); i++ {
 		_, err := block.Statements[i].Accept(a)
@@ -300,6 +307,7 @@ func (a *AstInterpreter) ExecuteBlock(block *ast.BlockStmt, env *environment.Env
 			return err
 		}
 	}
+	a.env = prevEnv
 	return nil
 }
 

@@ -342,7 +342,7 @@ func (p *Parser) parseBlockStatement() (*ast.BlockStmt, error) {
 // Parse a func statement.
 func (p *Parser) parseFunctionStatement() (*ast.FunctionStmt, error) {
 	// Function declaration starts with the function's name.
-	symbol, err := p.consume(tokentype.IDENTIFIER, "Expected identifier after 'fun'.")
+	name, err := p.consume(tokentype.IDENTIFIER, "Expected identifier after 'fun'.")
 	if err != nil {
 		return nil, err
 	}
@@ -353,18 +353,18 @@ func (p *Parser) parseFunctionStatement() (*ast.FunctionStmt, error) {
 		return nil, err
 	}
 
-	args := make([]*token.Token, 0)
+	params := make([]*token.Token, 0)
 	if p.peekMatches(1, tokentype.RIGHT_PAREN) {
 		// No args, move on.
 		p.advance()
 	} else {
 		// Parse the args.
 		for {
-			arg, err := p.consume(tokentype.IDENTIFIER, "Expected identifier")
+			param, err := p.consume(tokentype.IDENTIFIER, "Expected identifier")
 			if err != nil {
 				return nil, err
 			}
-			args = append(args, arg)
+			params = append(params, param)
 
 			nextSep := p.advance()
 			if nextSep.Type == tokentype.RIGHT_PAREN {
@@ -388,8 +388,8 @@ func (p *Parser) parseFunctionStatement() (*ast.FunctionStmt, error) {
 	}
 
 	return &ast.FunctionStmt{
-		Symbol: symbol,
-		Args:   args,
+		Name:   name,
+		Params: params,
 		Body:   funcBody,
 	}, nil
 }

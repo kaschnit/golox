@@ -12,20 +12,21 @@ type Callable interface {
 
 type LoxFunction struct {
 	declaration *ast.FunctionStmt
+	closure     *environment.Environment
 }
 
-func NewLoxFunction(declaration *ast.FunctionStmt) *LoxFunction {
-	return &LoxFunction{declaration}
+func NewLoxFunction(declaration *ast.FunctionStmt, closure *environment.Environment) *LoxFunction {
+	return &LoxFunction{declaration, closure}
 }
 
 func (f *LoxFunction) Arity() int {
-	return len(f.declaration.Args)
+	return len(f.declaration.Params)
 }
 
 func (f *LoxFunction) Call(interpreter *AstInterpreter, args []interface{}) (interface{}, error) {
-	env := environment.NewEnvironment(interpreter.env)
-	for i := range f.declaration.Args {
-		env.Set(f.declaration.Args[i].Lexeme, args[i])
+	env := f.closure.Fork()
+	for i := range f.declaration.Params {
+		env.Set(f.declaration.Params[i].Lexeme, args[i])
 	}
 	return nil, interpreter.ExecuteBlock(f.declaration.Body, env)
 }

@@ -32,16 +32,22 @@ func TestOutput_Construct_GlobalClosure(t *testing.T) {
 	assert.Equal(t, "112", result)
 }
 
+func TestOutput_Construct_IfElse(t *testing.T) {
+	result, err := testutil.InterpretTestProgram("constructs/IfElse.lox")
+	assert.Nil(t, err)
+	assert.Equal(t, "1 if 2 if 3 else 4 if 5 else 6 if 7 else 8 if ", result)
+}
+
 func TestOutput_Construct_IfElseIf(t *testing.T) {
 	result, err := testutil.InterpretTestProgram("constructs/IfElseIf.lox")
 	assert.Nil(t, err)
 	assert.Equal(t, "1 if 2 else if 3 else ", result)
 }
 
-func TestOutput_Construct_IfElse(t *testing.T) {
-	result, err := testutil.InterpretTestProgram("constructs/IfElse.lox")
+func TestOutput_Construct_LocalClosure(t *testing.T) {
+	result, err := testutil.InterpretTestProgram("constructs/LocalClosure.lox")
 	assert.Nil(t, err)
-	assert.Equal(t, "1 if 2 if 3 else 4 if 5 else 6 if 7 else 8 if ", result)
+	assert.Equal(t, "HelloHello15", result)
 }
 
 func TestOutput_Construct_LogicalAnd(t *testing.T) {

@@ -1,0 +1,13 @@
+# build artifacts
+build/
+coverage/
+
+# editor configs
+.vscode
+
+# misc
+.DS_Store
+README.md
+.gitignore
+.dockerignore
+Dockerfile

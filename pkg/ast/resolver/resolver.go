@@ -35,7 +35,9 @@ func (r *AstResolver) VisitPrintStmt(s *ast.PrintStmt) (interface{}, error) {
 }
 
 func (r *AstResolver) VisitReturnStmt(s *ast.ReturnStmt) (interface{}, error) {
-	s.Expression.Accept(r)
+	if s.Expression != nil {
+		s.Expression.Accept(r)
+	}
 	return nil, nil
 }
 
@@ -69,7 +71,9 @@ func (r *AstResolver) VisitBlockStmt(s *ast.BlockStmt) (interface{}, error) {
 }
 
 func (r *AstResolver) VisitFunctionStmt(s *ast.FunctionStmt) (interface{}, error) {
-	s.Body.Accept(r)
+	r.declareName(s.Name.Lexeme)
+	r.defineName(s.Name.Lexeme)
+	r.resolveFunction(s)
 	return nil, nil
 }
 
@@ -84,6 +88,7 @@ func (r *AstResolver) VisitVarStmt(s *ast.VarStmt) (interface{}, error) {
 
 func (r *AstResolver) VisitAssignExpr(e *ast.AssignExpr) (interface{}, error) {
 	e.Right.Accept(r)
+	r.resolveLocal(e, e.Left.Lexeme)
 	return nil, nil
 }
 
@@ -121,13 +126,26 @@ func (r *AstResolver) VisitVarExpr(e *ast.VarExpr) (interface{}, error) {
 			loxerr.AtToken(e.Name, "Can't read local variable in its own initializer.")
 		}
 	}
+	r.resolveLocal(e, e.Name.Lexeme)
+	return nil, nil
+}
 
+func (r *AstResolver) resolveLocal(expr ast.Expr, name string) {
 	for i := len(r.scopes) - 1; i >= 0; i-- {
-		if _, ok := r.scopes[i][e.Name.Lexeme]; ok {
-			r.interpreter.Resolve(e, len(r.scopes)-i-1)
+		if _, ok := r.scopes[i][name]; ok {
+			r.interpreter.Resolve(expr, len(r.scopes)-1-i)
 		}
 	}
-	return nil, nil
+}
+
+func (r *AstResolver) resolveFunction(f *ast.FunctionStmt) {
+	r.beginScope()
+	for _, param := range f.Params {
+		r.declareName(param.Lexeme)
+		r.defineName(param.Lexeme)
+	}
+	f.Body.Accept(r)
+	r.endScope()
 }
 
 func (r *AstResolver) beginScope() {

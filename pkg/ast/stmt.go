@@ -66,8 +66,8 @@ func (s *BlockStmt) Accept(v AstVisitor) (interface{}, error) {
 
 // Represents a function declaration statement AST node.
 type FunctionStmt struct {
-	Symbol *token.Token
-	Args   []*token.Token
+	Name   *token.Token
+	Params []*token.Token
 	Body   *BlockStmt
 }
 
