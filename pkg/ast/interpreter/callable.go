@@ -2,7 +2,7 @@ package interpreter
 
 import (
 	"github.com/kaschnit/golox/pkg/ast"
-	"github.com/kaschnit/golox/pkg/environment"
+	"github.com/kaschnit/golox/pkg/ast/interpreter/environment"
 )
 
 type Callable interface {

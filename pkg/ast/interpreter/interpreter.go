@@ -5,8 +5,8 @@ import (
 	"time"
 
 	"github.com/kaschnit/golox/pkg/ast"
+	"github.com/kaschnit/golox/pkg/ast/interpreter/environment"
 	"github.com/kaschnit/golox/pkg/conversion"
-	"github.com/kaschnit/golox/pkg/environment"
 	loxerr "github.com/kaschnit/golox/pkg/errors"
 	"github.com/kaschnit/golox/pkg/token"
 	"github.com/kaschnit/golox/pkg/token/tokentype"
