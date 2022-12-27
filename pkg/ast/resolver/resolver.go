@@ -70,6 +70,12 @@ func (r *AstResolver) VisitBlockStmt(s *ast.BlockStmt) (interface{}, error) {
 	return nil, nil
 }
 
+func (r *AstResolver) VisitClassStmt(s *ast.ClassStmt) (interface{}, error) {
+	r.declareName(s.Name.Lexeme)
+	r.defineName(s.Name.Lexeme)
+	return nil, nil
+}
+
 func (r *AstResolver) VisitFunctionStmt(s *ast.FunctionStmt) (interface{}, error) {
 	r.declareName(s.Name.Lexeme)
 	r.defineName(s.Name.Lexeme)

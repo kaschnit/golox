@@ -12,6 +12,7 @@ type AstVisitor interface {
 	VisitAssignExpr(*AssignExpr) (interface{}, error)
 	VisitCallExpr(*CallExpr) (interface{}, error)
 	VisitBlockStmt(*BlockStmt) (interface{}, error)
+	VisitClassStmt(*ClassStmt) (interface{}, error)
 	VisitFunctionStmt(*FunctionStmt) (interface{}, error)
 	VisitVarStmt(*VarStmt) (interface{}, error)
 	VisitBinaryExpr(*BinaryExpr) (interface{}, error)

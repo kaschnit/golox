@@ -43,5 +43,10 @@ build: generate build-golox
 build-%: generate
 	go build -o ./build/$* .
 
+.PHONY: run
+run: ARGS = interpreter -i
+run:
+	go run . $(ARGS)
+
 .PHONY: all
 all: build test

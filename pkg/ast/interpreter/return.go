@@ -8,13 +8,13 @@ import "fmt"
 // For nodes that must handle a return (e.g., CallExpr), the return can be explicitly handled
 // by checking if the error is of type *Return.
 type Return struct {
-	value interface{}
+	Value interface{}
 }
 
 func NewReturn(value interface{}) *Return {
-	return &Return{value}
+	return &Return{Value: value}
 }
 
 func (r *Return) Error() string {
-	return fmt.Sprintf("RETURN %v", r.value)
+	return fmt.Sprintf("RETURN %v", r.Value)
 }

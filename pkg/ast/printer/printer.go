@@ -87,6 +87,11 @@ func (p *AstPrinter) VisitBlockStmt(s *ast.BlockStmt) (interface{}, error) {
 	return nil, nil
 }
 
+func (p *AstPrinter) VisitClassStmt(s *ast.ClassStmt) (interface{}, error) {
+	// TODO: implement class statement
+	return nil, nil
+}
+
 func (p *AstPrinter) VisitFunctionStmt(s *ast.FunctionStmt) (interface{}, error) {
 	p.printTabbing()
 	fmt.Printf("(func %s)\n", s.Name.Lexeme)

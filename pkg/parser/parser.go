@@ -83,6 +83,9 @@ func (p *Parser) parseStatement() (ast.Stmt, error) {
 	case tokentype.WHILE:
 		p.advance()
 		return p.parseWhileStatement()
+	case tokentype.CLASS:
+		p.advance()
+		return p.parseClassStatement()
 	case tokentype.FOR:
 		p.advance()
 		return p.parseForStatement()
@@ -342,10 +345,50 @@ func (p *Parser) parseBlockStatement() (*ast.BlockStmt, error) {
 	return &ast.BlockStmt{Statements: statements}, nil
 }
 
-// Parse a func statement.
+// Parse a class statement.
+func (p *Parser) parseClassStatement() (*ast.ClassStmt, error) {
+	// Class declaration starts with the class's name.
+	name, err := p.consume(tokentype.IDENTIFIER, "Expected identifier.")
+	if err != nil {
+		return nil, err
+	}
+
+	_, err = p.consume(tokentype.LEFT_BRACE, "Expected '{'.")
+	if err != nil {
+		return nil, err
+	}
+
+	// Parse each method declaration within the class declaration.
+	var constructor *ast.FunctionStmt
+	methods := make([]*ast.FunctionStmt, 0)
+	for !p.peekMatches(1, tokentype.RIGHT_BRACE) && !p.isAtEnd() {
+		funcStatement, err := p.parseFunctionStatement()
+		if err != nil {
+			return nil, err
+		}
+		if funcStatement.Name.Lexeme == "init" {
+			constructor = funcStatement
+		} else {
+			methods = append(methods, funcStatement)
+		}
+	}
+
+	_, err = p.consume(tokentype.RIGHT_BRACE, "Expected '}'.")
+	if err != nil {
+		return nil, err
+	}
+
+	return &ast.ClassStmt{
+		Name:        name,
+		Constructor: constructor,
+		Methods:     methods,
+	}, nil
+}
+
+// Parse a function declaration.
 func (p *Parser) parseFunctionStatement() (*ast.FunctionStmt, error) {
 	// Function declaration starts with the function's name.
-	name, err := p.consume(tokentype.IDENTIFIER, "Expected identifier after 'fun'.")
+	name, err := p.consume(tokentype.IDENTIFIER, "Expected identifier.")
 	if err != nil {
 		return nil, err
 	}
@@ -597,40 +640,43 @@ func (p *Parser) parseCall() (ast.Expr, error) {
 	}
 
 	// Find all consecutive call operators.
-	for nextToken := p.peek(1); nextToken.Type == tokentype.LEFT_PAREN; nextToken = p.peek(1) {
-		p.advance()
-
-		// Extract the args for this call, if any.
-		args := []ast.Expr{}
-		if p.peekMatches(1, tokentype.RIGHT_PAREN) {
-			// No args, move on.
+	nextToken := p.peek(1)
+	if nextToken.Type == tokentype.LEFT_PAREN {
+		for nextToken := p.peek(1); nextToken.Type == tokentype.LEFT_PAREN; nextToken = p.peek(1) {
 			p.advance()
-		} else {
-			// Parse the args.
-			for {
-				arg, err := p.parseExpression()
-				if err != nil {
-					return nil, err
-				}
-				args = append(args, arg)
 
-				// After the arg, there must be either a comma or a closing parentheses.
-				// If closing parentheses, done parsing the args.
-				// Continue parsing args if it's a comma.
-				nextSep := p.advance()
-				if nextSep.Type == tokentype.RIGHT_PAREN {
-					break
-				} else if nextSep.Type != tokentype.COMMA {
-					return nil, loxerr.AtToken(nextSep, "Expected ')' after call.")
+			// Extract the args for this call, if any.
+			args := []ast.Expr{}
+			if p.peekMatches(1, tokentype.RIGHT_PAREN) {
+				// No args, move on.
+				p.advance()
+			} else {
+				// Parse the args.
+				for {
+					arg, err := p.parseExpression()
+					if err != nil {
+						return nil, err
+					}
+					args = append(args, arg)
+
+					// After the arg, there must be either a comma or a closing parentheses.
+					// If closing parentheses, done parsing the args.
+					// Continue parsing args if it's a comma.
+					nextSep := p.advance()
+					if nextSep.Type == tokentype.RIGHT_PAREN {
+						break
+					} else if nextSep.Type != tokentype.COMMA {
+						return nil, loxerr.AtToken(nextSep, "Expected ')' after call.")
+					}
 				}
 			}
-		}
 
-		// The current call becomes the callee of the next call.
-		expr = &ast.CallExpr{
-			Callee:    expr,
-			OpenParen: nextToken,
-			Args:      args,
+			// The current call becomes the callee of the next call.
+			expr = &ast.CallExpr{
+				Callee:    expr,
+				OpenParen: nextToken,
+				Args:      args,
+			}
 		}
 	}
 

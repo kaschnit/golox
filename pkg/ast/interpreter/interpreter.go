@@ -23,6 +23,7 @@ type AstInterpreter struct {
 func NewAstInterpreter() *AstInterpreter {
 	globals := environment.NewEnvironmentWithVars(nil, map[string]interface{}{
 		"clock": NewNativeFunction(
+			"clock",
 			0,
 			func(interpreter *AstInterpreter, args []interface{}) (interface{}, error) {
 				return time.Now().Unix(), nil
@@ -102,6 +103,16 @@ func (a *AstInterpreter) VisitWhileStmt(s *ast.WhileStmt) (interface{}, error) {
 func (a *AstInterpreter) VisitBlockStmt(s *ast.BlockStmt) (interface{}, error) {
 	// Execute the block in a new child environment.
 	return nil, a.ExecuteBlock(s.Statements, a.env.NewChild())
+}
+
+func (a *AstInterpreter) VisitClassStmt(s *ast.ClassStmt) (interface{}, error) {
+	cls := NewLoxClass(s)
+	_, exists := a.env.Get(s.Name.Lexeme)
+	if exists {
+		return nil, loxerr.Runtime(s.Name, fmt.Sprintf("Name '%s' already defined", s.Name.Lexeme))
+	}
+	a.env.Set(s.Name.Lexeme, cls)
+	return nil, nil
 }
 
 func (a *AstInterpreter) VisitFunctionStmt(s *ast.FunctionStmt) (interface{}, error) {
