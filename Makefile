@@ -22,7 +22,7 @@ test:
 	mkdir -p coverage
 	go test -coverpkg=./... -coverprofile=./coverage/profile.cov ./...
 
-.PHONY: test-in-docker
+.PHONY: %-in-docker
 %-in-docker: DOCKER_TARGET=builder
 %-in-docker:
 	docker build -t golox:test --target=$(DOCKER_TARGET) .
@@ -39,6 +39,7 @@ cover-html: test
 .PHONY: build
 build: generate build-golox
 
+.PHONY: build-%
 build-%: generate
 	go build -o ./build/$* .
 
