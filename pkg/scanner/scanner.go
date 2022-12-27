@@ -135,7 +135,7 @@ func (s *Scanner) scanToken() (*token.Token, error) {
 	// Could be 1 or 2 character tokens
 	case '/':
 		if s.peek(1) == '/' {
-			s.throwAwayLine()
+			s.discardLine()
 			return nil, nil
 		} else {
 			return s.createToken(tokentype.SLASH), nil
@@ -265,7 +265,7 @@ func (s *Scanner) scanIdentifier() (*token.Token, error) {
 	}, nil
 }
 
-func (s *Scanner) throwAwayLine() {
+func (s *Scanner) discardLine() {
 	// Advance to the next newline or until EOF.
 	for s.peek(1) != '\n' && !s.isAtEnd() {
 		s.current++
