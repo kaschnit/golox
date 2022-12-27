@@ -1,7 +1,6 @@
 package constructs_test
 
 import (
-	"fmt"
 	"os"
 	"testing"
 
@@ -46,7 +45,6 @@ func TestOutput_Construct_IfElseIf(t *testing.T) {
 }
 
 func TestOutput_Construct_LocalClosure(t *testing.T) {
-	fmt.Println(testutil.ParseTestProgram("constructs/LocalClosure.lox"))
 	result, err := testutil.InterpretTestProgram("constructs/LocalClosure.lox")
 	assert.Nil(t, err)
 	assert.Equal(t, "HelloHello15", result)
@@ -74,6 +72,18 @@ func TestOutput_Construct_NumericComparisonOperations(t *testing.T) {
 	result, err := testutil.InterpretTestProgram("constructs/NumericComparisonOperations.lox")
 	assert.Nil(t, err)
 	assert.Equal(t, "false true false false true true true false false true false true true false false true", result)
+}
+
+func TestOutput_Construct_ReturnAtEndOfFunction(t *testing.T) {
+	result, err := testutil.InterpretTestProgram("constructs/ReturnAtEndOfFunction.lox")
+	assert.Nil(t, err)
+	assert.Equal(t, "This should be printed! Yay!", result)
+}
+
+func TestOutput_Construct_ReturnEarlyFromFunction(t *testing.T) {
+	result, err := testutil.InterpretTestProgram("constructs/ReturnEarlyFromFunction.lox")
+	assert.Nil(t, err)
+	assert.Equal(t, "Yay!", result)
 }
 
 func TestOutput_Construct_Scoping(t *testing.T) {

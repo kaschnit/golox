@@ -1,0 +1,14 @@
+fun doStuffAndReturnEarly() {
+
+    var exclamation = "Yay!";
+
+    if (1 == 1) {
+        return exclamation;
+    }
+
+    print "This shouldn't be printed!";
+    return "This shouldn't be returned!";
+}
+
+var result = doStuffAndReturnEarly();
+print result; // "Yay!"

@@ -134,6 +134,7 @@ func (r *AstResolver) resolveLocal(expr ast.Expr, name string) {
 	for i := len(r.scopes) - 1; i >= 0; i-- {
 		if _, ok := r.scopes[i][name]; ok {
 			r.interpreter.Resolve(expr, len(r.scopes)-1-i)
+			return
 		}
 	}
 }
@@ -144,7 +145,9 @@ func (r *AstResolver) resolveFunction(f *ast.FunctionStmt) {
 		r.declareName(param.Lexeme)
 		r.defineName(param.Lexeme)
 	}
-	f.Body.Accept(r)
+	for _, stmt := range f.Body {
+		stmt.Accept(r)
+	}
 	r.endScope()
 }
 

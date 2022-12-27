@@ -18,6 +18,7 @@ func (s *PrintStmt) Accept(v AstVisitor) (interface{}, error) {
 
 // Represents a return statement AS node.
 type ReturnStmt struct {
+	Keyword    *token.Token
 	Expression Expr
 }
 
@@ -68,7 +69,7 @@ func (s *BlockStmt) Accept(v AstVisitor) (interface{}, error) {
 type FunctionStmt struct {
 	Name   *token.Token
 	Params []*token.Token
-	Body   *BlockStmt
+	Body   []Stmt
 }
 
 func (s *FunctionStmt) Accept(v AstVisitor) (interface{}, error) {

@@ -16,7 +16,10 @@ type LoxFunction struct {
 }
 
 func NewLoxFunction(declaration *ast.FunctionStmt, closure *environment.Environment) *LoxFunction {
-	return &LoxFunction{declaration, closure}
+	return &LoxFunction{
+		declaration: declaration,
+		closure:     closure,
+	}
 }
 
 func (f *LoxFunction) Arity() int {
@@ -24,11 +27,20 @@ func (f *LoxFunction) Arity() int {
 }
 
 func (f *LoxFunction) Call(interpreter *AstInterpreter, args []interface{}) (interface{}, error) {
-	env := f.closure.Fork()
-	for i := range f.declaration.Params {
-		env.Set(f.declaration.Params[i].Lexeme, args[i])
+	env := f.closure.NewChild()
+	for i, param := range f.declaration.Params {
+		env.Set(param.Lexeme, args[i])
 	}
-	return nil, interpreter.ExecuteBlock(f.declaration.Body, env)
+
+	err := interpreter.ExecuteBlock(f.declaration.Body, env)
+
+	// Return is propagated by child nodes up until this node
+	// to end execution of the function.
+	if returnWrapper, ok := err.(*Return); ok {
+		return returnWrapper.value, nil
+	}
+
+	return nil, err
 }
 
 type NativeFunction struct {

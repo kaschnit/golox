@@ -117,6 +117,7 @@ func (p *Parser) parsePrintStatement() (*ast.PrintStmt, error) {
 func (p *Parser) parseReturnStatement() (*ast.ReturnStmt, error) {
 	var expr ast.Expr
 	var err error
+	returnKeyword := p.peek(0)
 	if !p.peekMatches(1, tokentype.SEMICOLON) {
 		expr, err = p.parseExpression()
 		if err != nil {
@@ -130,6 +131,7 @@ func (p *Parser) parseReturnStatement() (*ast.ReturnStmt, error) {
 	}
 
 	return &ast.ReturnStmt{
+		Keyword:    returnKeyword,
 		Expression: expr,
 	}, nil
 }
@@ -226,8 +228,9 @@ func (p *Parser) parseWhileStatement() (*ast.WhileStmt, error) {
 
 // Parse a for loop statement.
 // Desugars the for loop to a while loop. The following two are equivalent:
-// 	1. for (int i = 0; i < 5; i++) { doSomething() }
-// 	2. { int i = 0; while (i < 5) { { doSomething(); } i++; } }
+//  1. for (int i = 0; i < 5; i++) { doSomething() }
+//  2. { int i = 0; while (i < 5) { { doSomething(); } i++; } }
+//
 // The while loop is placed inside its own block. The initializer is placed at the beginning
 // of this block. The loop body is placed inside a nested block, and the increment is placed
 // after this nested block.
@@ -390,7 +393,7 @@ func (p *Parser) parseFunctionStatement() (*ast.FunctionStmt, error) {
 	return &ast.FunctionStmt{
 		Name:   name,
 		Params: params,
-		Body:   funcBody,
+		Body:   funcBody.Statements,
 	}, nil
 }
 

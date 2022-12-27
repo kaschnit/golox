@@ -78,8 +78,8 @@ func (p *AstPrinter) VisitBlockStmt(s *ast.BlockStmt) (interface{}, error) {
 	p.printTabbing()
 	fmt.Println("{")
 	p.indent++
-	for i := 0; i < len(s.Statements); i++ {
-		s.Statements[i].Accept(p)
+	for _, stmt := range s.Statements {
+		stmt.Accept(p)
 	}
 	p.indent--
 	p.printTabbing()
@@ -90,7 +90,11 @@ func (p *AstPrinter) VisitBlockStmt(s *ast.BlockStmt) (interface{}, error) {
 func (p *AstPrinter) VisitFunctionStmt(s *ast.FunctionStmt) (interface{}, error) {
 	p.printTabbing()
 	fmt.Printf("(func %s)\n", s.Name.Lexeme)
-	s.Body.Accept(p)
+	fmt.Println("{")
+	for _, stmt := range s.Body {
+		stmt.Accept(p)
+	}
+	fmt.Println("}")
 	return nil, nil
 }
 

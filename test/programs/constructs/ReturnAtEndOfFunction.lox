@@ -1,0 +1,11 @@
+fun doStuffThenReturn() {
+
+    var exclamation = "Yay!";
+
+    print "This should be printed!"; // "This should be printed!"
+    return exclamation;
+}
+
+var result = doStuffThenReturn();
+print " "; // " "
+print result; // "Yay!"

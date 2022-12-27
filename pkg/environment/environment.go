@@ -1,5 +1,7 @@
 package environment
 
+import "fmt"
+
 // Represents a block's environment.
 type Environment struct {
 	parent *Environment
@@ -41,8 +43,15 @@ func (e *Environment) SetAt(varName string, distance int, val interface{}) {
 	e.ancestor(distance).vars[varName] = val
 }
 
-func (e *Environment) Fork() *Environment {
+func (e *Environment) NewChild() *Environment {
 	return NewEnvironment(e)
+}
+
+func (e *Environment) Print() {
+	if e.parent != nil {
+		e.parent.Print()
+	}
+	fmt.Printf(" --> %v (%p)", e.vars, e.vars)
 }
 
 func (e *Environment) ancestor(distance int) *Environment {

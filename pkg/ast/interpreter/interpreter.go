@@ -101,38 +101,39 @@ func (a *AstInterpreter) VisitWhileStmt(s *ast.WhileStmt) (interface{}, error) {
 
 func (a *AstInterpreter) VisitBlockStmt(s *ast.BlockStmt) (interface{}, error) {
 	// Execute the block in a new child environment.
-	return nil, a.ExecuteBlock(s, a.env.Fork())
+	return nil, a.ExecuteBlock(s.Statements, a.env.NewChild())
 }
 
 func (a *AstInterpreter) VisitFunctionStmt(s *ast.FunctionStmt) (interface{}, error) {
-	loxFunc := NewLoxFunction(s, a.env)
-	funcName := s.Name.Lexeme
-	_, exists := a.env.Get(funcName)
+	function := NewLoxFunction(s, a.env)
+	_, exists := a.env.Get(s.Name.Lexeme)
 	if exists {
-		return nil, loxerr.Runtime(s.Name, fmt.Sprintf("Name '%s' already defined", funcName))
+		return nil, loxerr.Runtime(s.Name, fmt.Sprintf("Name '%s' already defined", s.Name.Lexeme))
 	}
-	a.env.Set(funcName, loxFunc)
+	a.env.Set(s.Name.Lexeme, function)
 	return nil, nil
 }
 
 func (a *AstInterpreter) VisitVarStmt(s *ast.VarStmt) (interface{}, error) {
-	varName := s.Left.Lexeme
-	_, exists := a.env.Get(varName)
+	_, exists := a.env.Get(s.Left.Lexeme)
 	if exists {
-		return nil, loxerr.Runtime(s.Left, fmt.Sprintf("Name '%s' already defined", varName))
-	}
-	value, err := s.Right.Accept(a)
-	if err != nil {
-		return nil, err
+		return nil, loxerr.Runtime(s.Left, fmt.Sprintf("Name '%s' already defined", s.Left.Lexeme))
 	}
 
-	a.env.Set(varName, value)
+	if s.Right == nil {
+		a.env.Set(s.Left.Lexeme, nil)
+	} else {
+		value, err := s.Right.Accept(a)
+		if err != nil {
+			return nil, err
+		}
+		a.env.Set(s.Left.Lexeme, value)
+	}
+
 	return nil, nil
 }
 
 func (a *AstInterpreter) VisitAssignExpr(e *ast.AssignExpr) (interface{}, error) {
-	varName := e.Left.Lexeme
-
 	value, err := e.Right.Accept(a)
 	if err != nil {
 		return nil, err
@@ -143,7 +144,7 @@ func (a *AstInterpreter) VisitAssignExpr(e *ast.AssignExpr) (interface{}, error)
 		return value, nil
 	}
 
-	exists := a.globals.Replace(varName, value)
+	exists := a.globals.Replace(e.Left.Lexeme, value)
 	if !exists {
 		return nil, loxerr.Runtime(e.Left, fmt.Sprintf("Variable '%s' not defined", e.Left.Lexeme))
 	}
@@ -178,12 +179,6 @@ func (a *AstInterpreter) VisitCallExpr(e *ast.CallExpr) (interface{}, error) {
 	}
 
 	result, err := callable.Call(a, argList)
-
-	// Return is propagated by child nodes up until this node
-	// to end execution of the function.
-	if returnWrapper, ok := err.(*Return); ok {
-		return returnWrapper.value, nil
-	}
 	return result, err
 }
 
@@ -296,18 +291,20 @@ func (a *AstInterpreter) VisitVarExpr(e *ast.VarExpr) (interface{}, error) {
 	return result, err
 }
 
-// Execute the statements in a block statement using the provided environment.
-func (a *AstInterpreter) ExecuteBlock(block *ast.BlockStmt, env *environment.Environment) error {
+func (a *AstInterpreter) ExecuteBlock(stmts []ast.Stmt, env *environment.Environment) error {
 	prevEnv := a.env
+	defer func() {
+		a.env = prevEnv
+	}()
+
 	a.env = env
 
-	for i := 0; i < len(block.Statements); i++ {
-		_, err := block.Statements[i].Accept(a)
+	for _, stmt := range stmts {
+		_, err := stmt.Accept(a)
 		if err != nil {
 			return err
 		}
 	}
-	a.env = prevEnv
 	return nil
 }
 
