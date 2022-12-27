@@ -11,3 +11,6 @@ README.md
 .gitignore
 .dockerignore
 Dockerfile
+
+# generated code
+*.generated.go
