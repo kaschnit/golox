@@ -2,7 +2,7 @@ package tokentype
 
 type TokenType int
 
-//go:generate go run golang.org/x/tools/cmd/stringer -type=TokenType
+//go:generate go run golang.org/x/tools/cmd/stringer -type=TokenType -output tokentype_string.generated.go
 
 const (
 	LEFT_PAREN TokenType = iota
