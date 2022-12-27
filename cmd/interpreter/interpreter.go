@@ -10,8 +10,16 @@ import (
 	"github.com/spf13/cobra"
 )
 
+type InterpreterAlgorithm string
+
+const (
+	InterpreterAlgorithmAST      InterpreterAlgorithm = "ast"
+	InterpreterAlgorithmByteCode InterpreterAlgorithm = "bytecode"
+)
+
 type InterpreterFlags struct {
 	interactive bool
+	algorithm   string
 }
 
 var (
@@ -27,6 +35,7 @@ var (
 
 func init() {
 	InterpreterCmd.Flags().BoolVarP(&flags.interactive, "interactive", "i", false, "Run in interactive mode.")
+	InterpreterCmd.Flags().StringVarP(&flags.algorithm, "algorithm", "a", string(InterpreterAlgorithmByteCode), "The interpreter algorithm to use. One of: 'ast', 'bytecode'.")
 }
 
 func runInterpreterCmd(_ *cobra.Command, args []string) {
