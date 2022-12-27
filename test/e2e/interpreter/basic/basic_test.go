@@ -25,3 +25,9 @@ func TestOutput_PowerOfTwo(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Equal(t, "32", result)
 }
+
+func TestOutput_RecursiveFactorial(t *testing.T) {
+	result, err := testutil.InterpretTestProgram("basic/RecursiveFactorial.lox")
+	assert.Nil(t, err)
+	assert.Equal(t, "Recursive Factorials: 0! = 1; 1! = 1; 2! = 2; 3! = 6; 4! = 24; 5! = 120", result)
+}
