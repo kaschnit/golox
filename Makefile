@@ -23,9 +23,10 @@ test:
 	go test -coverpkg=./... -coverprofile=./coverage/profile.cov ./...
 
 .PHONY: test-in-docker
-test-in-docker:
-	docker build -t golox:test --target=builder .
-	docker run -it golox:test make test
+%-in-docker: DOCKER_TARGET=builder
+%-in-docker:
+	docker build -t golox:test --target=$(DOCKER_TARGET) .
+	docker run -it golox:test make $*
 
 .PHONY: cover
 cover: test
