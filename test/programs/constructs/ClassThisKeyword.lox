@@ -1,0 +1,57 @@
+class Confuser {
+
+    init() {
+        this.a = 1;
+        this.b = 10;
+    }
+
+    setA(a) {
+        this.a = a;
+        return this.b;
+    }
+
+    setB(newB) {
+        this.b = newB;
+        return this.a;
+    }
+
+}
+
+var nightmare = Confuser();
+print nightmare.a; // 1
+print " "; // " "
+print nightmare.b; // 10
+print " "; // " "
+print nightmare.a + nightmare.b; // 11
+print "   "; // " "
+
+var b = nightmare.setA(99);
+print b; // 10
+print " "; // " "
+print nightmare.a; // 99
+print " "; // " "
+print nightmare.b; // 10
+print "   "; // " "
+
+var a = nightmare.setB(12);
+print a; // 99
+print " "; // " "
+print nightmare.a; // 99
+print " "; // " "
+print nightmare.b; // 12
+print "   "; // " "
+
+a = nightmare.setB(13);
+print a; // 99
+print " "; // " "
+print nightmare.a; // 99
+print " "; // " "
+print nightmare.b; // 13
+print "   "; // " "
+
+b = nightmare.setA(1);
+print b; // 13
+print " "; // " "
+print nightmare.a; // 1
+print " "; // " "
+print nightmare.b; // 13

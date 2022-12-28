@@ -20,17 +20,28 @@ func TestOutput_Construct_Assignment(t *testing.T) {
 	assert.Equal(t, "-12 398", result)
 }
 
-func TestOutput_Construct_ClassArgsConstructor(t *testing.T) {
-	result, err := testutil.InterpretTestProgram("constructs/ClassArgsConstructor.lox")
+func TestOutput_Construct_ClassConstructorWithArgs(t *testing.T) {
+	result, err := testutil.InterpretTestProgram("constructs/ClassConstructorWithArgs.lox")
 	assert.Nil(t, err)
 	assert.Equal(t, "bye bob bar", result)
-
 }
 
-func TestOutput_Construct_ClassNoArgsConstructor(t *testing.T) {
-	result, err := testutil.InterpretTestProgram("constructs/ClassNoArgsConstructor.lox")
+func TestOutput_Construct_ClassConstructorNoArgs(t *testing.T) {
+	result, err := testutil.InterpretTestProgram("constructs/ClassConstructorNoArgs.lox")
 	assert.Nil(t, err)
 	assert.Equal(t, "a1a2a3", result)
+}
+
+func TestOutput_Construct_ClassMethods(t *testing.T) {
+	result, err := testutil.InterpretTestProgram("constructs/ClassMethods.lox")
+	assert.Nil(t, err)
+	assert.Equal(t, "AH! 100", result)
+}
+
+func TestOutput_Construct_ClassThisKeyword(t *testing.T) {
+	result, err := testutil.InterpretTestProgram("constructs/ClassThisKeyword.lox")
+	assert.Nil(t, err)
+	assert.Equal(t, "1 10 11   10 99 10   99 99 12   99 99 13   13 1 13", result)
 }
 
 func TestOutput_Construct_ForLoop(t *testing.T) {

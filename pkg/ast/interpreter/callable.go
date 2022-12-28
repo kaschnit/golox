@@ -30,11 +30,12 @@ func (f *LoxFunction) Arity() int {
 }
 
 func (f *LoxFunction) Call(interpreter *AstInterpreter, args []interface{}) (interface{}, error) {
-	env := f.closure.NewChild()
+	paramActuals := make(map[string]interface{})
 	for i, param := range f.declaration.Params {
-		env.Set(param.Lexeme, args[i])
+		paramActuals[param.Lexeme] = args[i]
 	}
 
+	env := f.closure.WithValues(paramActuals)
 	err := interpreter.ExecuteBlock(f.declaration.Body, env)
 
 	// Return is propagated by child nodes up until this node
@@ -47,8 +48,7 @@ func (f *LoxFunction) Call(interpreter *AstInterpreter, args []interface{}) (int
 }
 
 func (f *LoxFunction) Bind(instance *LoxClassInstance) *LoxFunction {
-	closure := f.closure.NewChild()
-	closure.Set("this", instance)
+	closure := f.closure.WithValue("this", instance)
 	return NewLoxFunction(f.declaration, closure)
 }
 

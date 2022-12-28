@@ -3,8 +3,8 @@ package interpreter
 import (
 	"fmt"
 
+	"github.com/kaschnit/golox/pkg/ast/analyzer"
 	ast_interpreter "github.com/kaschnit/golox/pkg/ast/interpreter"
-	"github.com/kaschnit/golox/pkg/ast/resolver"
 	"github.com/kaschnit/golox/pkg/cli"
 	"github.com/kaschnit/golox/pkg/cli/cli_common"
 	"github.com/spf13/cobra"
@@ -50,7 +50,7 @@ func runInterpreterCmd(_ *cobra.Command, args []string) {
 
 func interpretSourceFile(filepath string) {
 	interp := ast_interpreter.NewAstInterpreter()
-	resolv := resolver.NewAstResolver(interp)
+	resolv := analyzer.NewAstAnalyzer(interp)
 	err := cli_common.ParseSourceFileAndVisit(filepath, resolv, interp)
 	if err != nil {
 		fmt.Println(err)
@@ -59,7 +59,7 @@ func interpretSourceFile(filepath string) {
 
 func startInterpreterRepl() {
 	interp := ast_interpreter.NewAstInterpreter()
-	resolv := resolver.NewAstResolver(interp)
+	resolv := analyzer.NewAstAnalyzer(interp)
 	cli.NewRepl(func(line string) {
 		err := cli_common.ParseLineAndVisit(line, resolv, interp)
 		if err != nil {

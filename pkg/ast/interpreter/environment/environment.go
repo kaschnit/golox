@@ -1,62 +1,67 @@
 package environment
 
-import "fmt"
-
 // Represents a block's environment.
 type Environment struct {
 	parent *Environment
 	vars   map[string]interface{}
 }
 
-// Create a new Environment.
-func NewEnvironment(parent *Environment) *Environment {
-	return NewEnvironmentWithVars(parent, make(map[string]interface{}))
-}
-
 // Create a new environment with variables defined.
-func NewEnvironmentWithVars(parent *Environment, vars map[string]interface{}) *Environment {
-	return &Environment{parent, vars}
+func NewEnvironment(vars map[string]interface{}) *Environment {
+	return &Environment{
+		parent: nil,
+		vars:   vars,
+	}
 }
 
-func (e *Environment) Get(varName string) (interface{}, bool) {
+func (e *Environment) Get(varName string) (value interface{}, exists bool) {
 	val, exists := e.vars[varName]
 	return val, exists
 }
 
-func (e *Environment) GetAt(varName string, distance int) interface{} {
-	return e.ancestor(distance).vars[varName]
-}
-
-func (e *Environment) Replace(varName string, val interface{}) bool {
-	if _, exists := e.Get(varName); exists {
-		e.Set(varName, val)
-		return true
+func (e *Environment) TraverseGet(varName string) (value interface{}, exists bool) {
+	envWithVar := e.findEnvContainingName(varName)
+	if envWithVar == nil {
+		return envWithVar, false
 	}
-	return false
+	return envWithVar.vars[varName], true
 }
 
-func (e *Environment) Set(varName string, val interface{}) {
-	e.vars[varName] = val
-}
-
-func (e *Environment) SetAt(varName string, distance int, val interface{}) {
-	e.ancestor(distance).vars[varName] = val
+func (e *Environment) Replace(varName string, val interface{}) (exists bool) {
+	envWithVar := e.findEnvContainingName(varName)
+	if envWithVar == nil {
+		return false
+	}
+	envWithVar.vars[varName] = val
+	return true
 }
 
 func (e *Environment) NewChild() *Environment {
-	return NewEnvironment(e)
+	child := NewEnvironment(make(map[string]interface{}))
+	child.parent = e
+	return child
 }
 
-func (e *Environment) Print() {
-	if e.parent != nil {
-		e.parent.Print()
+func (e *Environment) WithValue(varName string, value interface{}) *Environment {
+	child := e.NewChild()
+	child.vars[varName] = value
+	return child
+}
+
+func (e *Environment) WithValues(values map[string]interface{}) *Environment {
+	child := e.NewChild()
+	for varName, value := range values {
+		child.vars[varName] = value
 	}
-	fmt.Printf(" --> %v (%p)", e.vars, e.vars)
+	return child
 }
 
-func (e *Environment) ancestor(distance int) *Environment {
+func (e *Environment) findEnvContainingName(varName string) *Environment {
 	currentEnv := e
-	for i := 0; i < distance; i++ {
+	for currentEnv != nil {
+		if _, exists := currentEnv.vars[varName]; exists {
+			break
+		}
 		currentEnv = currentEnv.parent
 	}
 	return currentEnv

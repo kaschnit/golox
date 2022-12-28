@@ -2,6 +2,7 @@ package interpreter
 
 import (
 	"fmt"
+	"os"
 	"time"
 
 	"github.com/kaschnit/golox/pkg/ast"
@@ -14,14 +15,12 @@ import (
 
 // Implementation of AstVisitor that interprets the visited AST directly
 type AstInterpreter struct {
-	env             *environment.Environment
-	globals         *environment.Environment
-	localResolution map[ast.Expr]int
+	env *environment.Environment
 }
 
 // Create an AstInterpreter.
 func NewAstInterpreter() *AstInterpreter {
-	globals := environment.NewEnvironmentWithVars(nil, map[string]interface{}{
+	globals := environment.NewEnvironment(map[string]interface{}{
 		"clock": NewNativeFunction(
 			"clock",
 			0,
@@ -30,11 +29,7 @@ func NewAstInterpreter() *AstInterpreter {
 			},
 		),
 	})
-	return &AstInterpreter{
-		env:             globals,
-		globals:         globals,
-		localResolution: make(map[ast.Expr]int),
-	}
+	return &AstInterpreter{env: globals}
 }
 
 func (a *AstInterpreter) VisitProgram(p *ast.Program) (interface{}, error) {
@@ -89,6 +84,7 @@ func (a *AstInterpreter) VisitWhileStmt(s *ast.WhileStmt) (interface{}, error) {
 		return nil, err
 	}
 
+	i := 0
 	for conversion.IsTruthy(cond) {
 		s.LoopStatement.Accept(a)
 
@@ -96,6 +92,11 @@ func (a *AstInterpreter) VisitWhileStmt(s *ast.WhileStmt) (interface{}, error) {
 		if err != nil {
 			return nil, err
 		}
+		i += 1
+		if i > 100 {
+			os.Exit(1)
+		}
+
 	}
 	return nil, nil
 }
@@ -111,19 +112,22 @@ func (a *AstInterpreter) VisitClassStmt(s *ast.ClassStmt) (interface{}, error) {
 		return nil, loxerr.Runtime(s.Name, fmt.Sprintf("Name '%s' already defined", s.Name.Lexeme))
 	}
 
-	a.env.Set(s.Name.Lexeme, nil)
+	a.env = a.env.WithValue(s.Name.Lexeme, nil)
 	cls := NewLoxClass(s, a.env)
-	a.env.Set(s.Name.Lexeme, cls)
+	a.env.Replace(s.Name.Lexeme, cls)
 	return nil, nil
 }
 
 func (a *AstInterpreter) VisitFunctionStmt(s *ast.FunctionStmt) (interface{}, error) {
-	function := NewLoxFunction(s, a.env)
 	_, exists := a.env.Get(s.Name.Lexeme)
 	if exists {
 		return nil, loxerr.Runtime(s.Name, fmt.Sprintf("Name '%s' already defined", s.Name.Lexeme))
 	}
-	a.env.Set(s.Name.Lexeme, function)
+
+	a.env = a.env.WithValue(s.Name.Lexeme, nil)
+	function := NewLoxFunction(s, a.env)
+	a.env.Replace(s.Name.Lexeme, function)
+
 	return nil, nil
 }
 
@@ -134,13 +138,13 @@ func (a *AstInterpreter) VisitVarStmt(s *ast.VarStmt) (interface{}, error) {
 	}
 
 	if s.Right == nil {
-		a.env.Set(s.Left.Lexeme, nil)
+		a.env = a.env.WithValue(s.Left.Lexeme, nil)
 	} else {
 		value, err := s.Right.Accept(a)
 		if err != nil {
 			return nil, err
 		}
-		a.env.Set(s.Left.Lexeme, value)
+		a.env = a.env.WithValue(s.Left.Lexeme, value)
 	}
 
 	return nil, nil
@@ -152,17 +156,11 @@ func (a *AstInterpreter) VisitAssignExpr(e *ast.AssignExpr) (interface{}, error)
 		return nil, err
 	}
 
-	if distance, ok := a.localResolution[e]; ok {
-		a.env.SetAt(e.Left.Lexeme, distance, value)
+	if exists := a.env.Replace(e.Left.Lexeme, value); exists {
 		return value, nil
 	}
 
-	exists := a.globals.Replace(e.Left.Lexeme, value)
-	if !exists {
-		return nil, loxerr.Runtime(e.Left, fmt.Sprintf("Variable '%s' not defined", e.Left.Lexeme))
-	}
-
-	return value, nil
+	return nil, loxerr.Runtime(e.Left, fmt.Sprintf("Variable '%s' not defined", e.Left.Lexeme))
 }
 
 func (a *AstInterpreter) VisitCallExpr(e *ast.CallExpr) (interface{}, error) {
@@ -361,18 +359,10 @@ func (a *AstInterpreter) ExecuteBlock(stmts []ast.Stmt, env *environment.Environ
 	return nil
 }
 
-func (a *AstInterpreter) Resolve(expr ast.Expr, distance int) {
-	a.localResolution[expr] = distance
-}
-
 func (a *AstInterpreter) findVar(name *token.Token, expr ast.Expr) (interface{}, error) {
-	if distance, ok := a.localResolution[expr]; ok {
-		return a.env.GetAt(name.Lexeme, distance), nil
+	if result, exists := a.env.TraverseGet(name.Lexeme); exists {
+		return result, nil
 	}
 
-	result, exists := a.globals.Get(name.Lexeme)
-	if !exists {
-		return nil, loxerr.Runtime(name, fmt.Sprintf("Variable '%s' not defined", name.Lexeme))
-	}
-	return result, nil
+	return nil, loxerr.Runtime(name, fmt.Sprintf("Variable '%s' not defined", name.Lexeme))
 }

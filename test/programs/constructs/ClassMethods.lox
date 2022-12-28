@@ -1,0 +1,18 @@
+class Useless {
+
+    yell() {
+        print "AH!";
+    }
+
+    getOneHundred() {
+        return 100;
+    }
+
+}
+
+var obj = Useless();
+obj.yell(); // "AH!"
+
+var result = obj.getOneHundred();
+print " "; // " "
+print result; // 100
