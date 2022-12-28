@@ -702,6 +702,7 @@ func (p *Parser) parsePrimary() (ast.Expr, error) {
 		tokentype.NUMBER, tokentype.STRING,
 		tokentype.TRUE, tokentype.FALSE,
 		tokentype.IDENTIFIER, tokentype.NIL,
+		tokentype.THIS,
 	}
 	if p.peekMatches(1, matchTokens...) {
 		matched := p.advance()
