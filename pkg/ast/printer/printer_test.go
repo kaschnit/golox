@@ -1,7 +1,7 @@
 package printer
 
 import (
-	"io/ioutil"
+	"io"
 	"os"
 	"testing"
 
@@ -51,7 +51,7 @@ func verifyPrintedToStdout(t *testing.T, expected string, testCode func()) {
 	testCode()
 
 	w.Close()
-	out, _ := ioutil.ReadAll(r)
+	out, _ := io.ReadAll(r)
 	os.Stdout = rescueStdout
 
 	// Check that the epected value was printed to stdout

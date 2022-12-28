@@ -106,11 +106,13 @@ func (a *AstInterpreter) VisitBlockStmt(s *ast.BlockStmt) (interface{}, error) {
 }
 
 func (a *AstInterpreter) VisitClassStmt(s *ast.ClassStmt) (interface{}, error) {
-	cls := NewLoxClass(s)
 	_, exists := a.env.Get(s.Name.Lexeme)
 	if exists {
 		return nil, loxerr.Runtime(s.Name, fmt.Sprintf("Name '%s' already defined", s.Name.Lexeme))
 	}
+
+	a.env.Set(s.Name.Lexeme, nil)
+	cls := NewLoxClass(s, a.env)
 	a.env.Set(s.Name.Lexeme, cls)
 	return nil, nil
 }
@@ -299,6 +301,46 @@ func (a *AstInterpreter) VisitLiteralExpr(e *ast.LiteralExpr) (interface{}, erro
 
 func (a *AstInterpreter) VisitVarExpr(e *ast.VarExpr) (interface{}, error) {
 	result, err := a.findVar(e.Name, e)
+	return result, err
+}
+
+func (a *AstInterpreter) VisitGetPropertyExpr(e *ast.GetPropertyExpr) (interface{}, error) {
+	parentObj, err := e.ParentObject.Accept(a)
+	if err != nil {
+		return nil, err
+	}
+
+	instance, ok := parentObj.(*LoxClassInstance)
+	if !ok {
+		return nil, loxerr.Runtime(e.Name, "Only class instances have properties.")
+	}
+
+	return instance.GetProperty(e.Name)
+}
+
+func (a *AstInterpreter) VisitSetPropertyExpr(e *ast.SetPropertyExpr) (interface{}, error) {
+	parentObj, err := e.ParentObject.Accept(a)
+	if err != nil {
+		return nil, err
+	}
+
+	instance, ok := parentObj.(*LoxClassInstance)
+	if !ok {
+		return nil, loxerr.Runtime(e.Name, "Only class instances have properties.")
+	}
+
+	value, err := e.Value.Accept(a)
+	if err != nil {
+		return nil, err
+	}
+
+	instance.SetProperty(e.Name, value)
+
+	return value, nil
+}
+
+func (a *AstInterpreter) VisitThisExpr(e *ast.ThisExpr) (interface{}, error) {
+	result, err := a.findVar(e.Keyword, e)
 	return result, err
 }
 

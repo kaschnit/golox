@@ -20,10 +20,29 @@ func TestOutput_Construct_Assignment(t *testing.T) {
 	assert.Equal(t, "-12 398", result)
 }
 
+func TestOutput_Construct_ClassArgsConstructor(t *testing.T) {
+	result, err := testutil.InterpretTestProgram("constructs/ClassArgsConstructor.lox")
+	assert.Nil(t, err)
+	assert.Equal(t, "bye bob bar", result)
+
+}
+
+func TestOutput_Construct_ClassNoArgsConstructor(t *testing.T) {
+	result, err := testutil.InterpretTestProgram("constructs/ClassNoArgsConstructor.lox")
+	assert.Nil(t, err)
+	assert.Equal(t, "a1a2a3", result)
+}
+
 func TestOutput_Construct_ForLoop(t *testing.T) {
 	result, err := testutil.InterpretTestProgram("constructs/ForLoop.lox")
 	assert.Nil(t, err)
 	assert.Equal(t, "0 1 2 3 4 5 Text Text ", result)
+}
+
+func TestOutput_Construct_FunctionCallWithArgs(t *testing.T) {
+	result, err := testutil.InterpretTestProgram("constructs/FunctionCallWithArgs.lox")
+	assert.Nil(t, err)
+	assert.Equal(t, "Printing 0: Printing 1: a Printing 2: b c Printing 3: d e f", result)
 }
 
 func TestOutput_Construct_GlobalClosure(t *testing.T) {

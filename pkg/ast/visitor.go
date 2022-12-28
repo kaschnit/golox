@@ -20,4 +20,7 @@ type AstVisitor interface {
 	VisitGroupingExpr(*GroupingExpr) (interface{}, error)
 	VisitLiteralExpr(*LiteralExpr) (interface{}, error)
 	VisitVarExpr(*VarExpr) (interface{}, error)
+	VisitGetPropertyExpr(*GetPropertyExpr) (interface{}, error)
+	VisitSetPropertyExpr(*SetPropertyExpr) (interface{}, error)
+	VisitThisExpr(*ThisExpr) (interface{}, error)
 }

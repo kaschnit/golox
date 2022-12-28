@@ -46,6 +46,12 @@ func (f *LoxFunction) Call(interpreter *AstInterpreter, args []interface{}) (int
 	return nil, err
 }
 
+func (f *LoxFunction) Bind(instance *LoxClassInstance) *LoxFunction {
+	closure := f.closure.NewChild()
+	closure.Set("this", instance)
+	return NewLoxFunction(f.declaration, closure)
+}
+
 func (f *LoxFunction) String() string {
 	return fmt.Sprintf("<function %s [%p]>", f.declaration.Name.Lexeme, f)
 }
@@ -53,18 +59,40 @@ func (f *LoxFunction) String() string {
 // Runtime representation of user-defined class
 type LoxClass struct {
 	declaration *ast.ClassStmt
+	closure     *environment.Environment
+	methods     map[string]*LoxFunction
 }
 
-func NewLoxClass(declaration *ast.ClassStmt) *LoxClass {
-	return &LoxClass{declaration: declaration}
+func NewLoxClass(declaration *ast.ClassStmt, closure *environment.Environment) *LoxClass {
+	methods := make(map[string]*LoxFunction)
+	for _, method := range declaration.Methods {
+		methods[method.Name.Lexeme] = NewLoxFunction(method, closure)
+	}
+
+	return &LoxClass{
+		declaration: declaration,
+		closure:     closure,
+		methods:     methods,
+	}
 }
 
 func (c *LoxClass) Arity() int {
-	return 0
+	if c.declaration.Constructor == nil {
+		return 0
+	}
+	return len(c.declaration.Constructor.Params)
 }
 
 func (c *LoxClass) Call(interpreter *AstInterpreter, args []interface{}) (interface{}, error) {
-	return NewLoxClassInstance(c), nil
+	instance := NewLoxClassInstance(c)
+
+	// Call the constructor if it's been defined
+	if c.declaration.Constructor != nil {
+		constructor := NewLoxFunction(c.declaration.Constructor, c.closure)
+		constructor.Bind(instance).Call(interpreter, args)
+	}
+
+	return instance, nil
 }
 
 func (c *LoxClass) String() string {

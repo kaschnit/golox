@@ -1,0 +1,32 @@
+fun printNoValues() {
+    print "Printing 0:";
+}
+
+fun printOneValue(value) {
+    print "Printing 1: ";
+    print value;
+}
+
+fun printTwoValues(value1, value2) {
+    print "Printing 2: ";
+    print value1;
+    print " ";
+    print value2;
+}
+
+fun printThreeValues(value1, val2, value) {
+    print "Printing 3: ";
+    print value1;
+    print " ";
+    print val2;
+    print " ";
+    print value;
+}
+
+printNoValues(); // "Printing 0:"
+print " "; // " "
+printOneValue("a"); // "Printing 1: a"
+print " "; // " "
+printTwoValues("b", "c"); // "Printing 2: b c"
+print " "; // " "
+printThreeValues("d", "e", "f"); // "Printing 3: d e f"

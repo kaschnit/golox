@@ -88,7 +88,17 @@ func (p *AstPrinter) VisitBlockStmt(s *ast.BlockStmt) (interface{}, error) {
 }
 
 func (p *AstPrinter) VisitClassStmt(s *ast.ClassStmt) (interface{}, error) {
-	// TODO: implement class statement
+	fmt.Printf("(class %s)\n", s.Name.Lexeme)
+	fmt.Println("{")
+	p.indent++
+	if s.Constructor != nil {
+		s.Constructor.Accept(p)
+	}
+	for _, stmt := range s.Methods {
+		stmt.Accept(p)
+	}
+	p.indent--
+	fmt.Println("}")
 	return nil, nil
 }
 
@@ -96,9 +106,11 @@ func (p *AstPrinter) VisitFunctionStmt(s *ast.FunctionStmt) (interface{}, error)
 	p.printTabbing()
 	fmt.Printf("(func %s)\n", s.Name.Lexeme)
 	fmt.Println("{")
+	p.indent++
 	for _, stmt := range s.Body {
 		stmt.Accept(p)
 	}
+	p.indent--
 	fmt.Println("}")
 	return nil, nil
 }
@@ -172,6 +184,24 @@ func (p *AstPrinter) VisitLiteralExpr(e *ast.LiteralExpr) (interface{}, error) {
 
 func (p *AstPrinter) VisitVarExpr(e *ast.VarExpr) (interface{}, error) {
 	fmt.Printf("(var %s)", e.Name.Lexeme)
+	return nil, nil
+}
+
+func (p *AstPrinter) VisitGetPropertyExpr(e *ast.GetPropertyExpr) (interface{}, error) {
+	e.ParentObject.Accept(p)
+	fmt.Printf(".%s)", e.Name.Lexeme)
+	return nil, nil
+}
+
+func (p *AstPrinter) VisitSetPropertyExpr(e *ast.SetPropertyExpr) (interface{}, error) {
+	e.ParentObject.Accept(p)
+	fmt.Printf(".%s = ", e.Name.Lexeme)
+	e.Value.Accept(p)
+	return nil, nil
+}
+
+func (p *AstPrinter) VisitThisExpr(e *ast.ThisExpr) (interface{}, error) {
+	fmt.Print("this")
 	return nil, nil
 }
 

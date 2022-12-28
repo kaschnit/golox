@@ -4,6 +4,10 @@ install:
 	go install golang.org/x/tools/cmd/stringer@latest
 	go get golang.org/x/tools/cmd/stringer@latest
 
+.PHONY: format
+format:
+	go fmt ./...
+
 .PHONY: generate
 generate:
 	go generate ./...

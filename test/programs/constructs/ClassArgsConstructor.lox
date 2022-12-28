@@ -1,0 +1,12 @@
+var counter = 1;
+
+class Car {
+    init(value) {
+        print "b";
+        print value;
+    }
+}
+
+Car("ye "); // bye
+var car1 = Car("ob "); // bob
+var car2 = Car("ar"); // bar

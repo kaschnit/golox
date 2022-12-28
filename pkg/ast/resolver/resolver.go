@@ -8,10 +8,18 @@ import (
 
 type Scope map[string]bool
 
+type ClassType int
+
+const (
+	ClassTypeNone ClassType = iota
+	ClassTypeClass
+)
+
 type AstResolver struct {
 	interpreter        *interpreter.AstInterpreter
 	scopes             []Scope
 	resolutionDistance map[ast.Expr]int
+	currentClassType   ClassType
 }
 
 func NewAstResolver(interpreter *interpreter.AstInterpreter) *AstResolver {
@@ -19,6 +27,7 @@ func NewAstResolver(interpreter *interpreter.AstInterpreter) *AstResolver {
 		interpreter:        interpreter,
 		scopes:             make([]Scope, 0),
 		resolutionDistance: make(map[ast.Expr]int),
+		currentClassType:   ClassTypeNone,
 	}
 }
 
@@ -71,8 +80,26 @@ func (r *AstResolver) VisitBlockStmt(s *ast.BlockStmt) (interface{}, error) {
 }
 
 func (r *AstResolver) VisitClassStmt(s *ast.ClassStmt) (interface{}, error) {
+	enclosingClassType := r.currentClassType
+	defer func() {
+		r.currentClassType = enclosingClassType
+	}()
+
+	r.currentClassType = ClassTypeClass
+
 	r.declareName(s.Name.Lexeme)
 	r.defineName(s.Name.Lexeme)
+
+	r.beginScope()
+
+	r.declareName("this")
+	r.defineName("this")
+
+	for _, method := range s.Methods {
+		r.resolveFunction(method)
+	}
+
+	r.endScope()
 	return nil, nil
 }
 
@@ -136,6 +163,26 @@ func (r *AstResolver) VisitVarExpr(e *ast.VarExpr) (interface{}, error) {
 	return nil, nil
 }
 
+func (r *AstResolver) VisitGetPropertyExpr(e *ast.GetPropertyExpr) (interface{}, error) {
+	e.ParentObject.Accept(r)
+	return nil, nil
+}
+
+func (r *AstResolver) VisitSetPropertyExpr(e *ast.SetPropertyExpr) (interface{}, error) {
+	e.Value.Accept(r)
+	e.ParentObject.Accept(r)
+	return nil, nil
+}
+
+func (r *AstResolver) VisitThisExpr(e *ast.ThisExpr) (interface{}, error) {
+	if r.currentClassType == ClassTypeNone {
+		return nil, loxerr.AtToken(e.Keyword, "Can't use 'this' outside of a class.")
+	}
+
+	r.resolveLocal(e, e.Keyword.Lexeme)
+	return nil, nil
+}
+
 func (r *AstResolver) resolveLocal(expr ast.Expr, name string) {
 	for i := len(r.scopes) - 1; i >= 0; i-- {
 		if _, ok := r.scopes[i][name]; ok {
@@ -157,8 +204,10 @@ func (r *AstResolver) resolveFunction(f *ast.FunctionStmt) {
 	r.endScope()
 }
 
-func (r *AstResolver) beginScope() {
-	r.scopes = append(r.scopes, make(Scope))
+func (r *AstResolver) beginScope() *Scope {
+	newScope := make(Scope)
+	r.scopes = append(r.scopes, newScope)
+	return &newScope
 }
 
 func (r *AstResolver) endScope() {

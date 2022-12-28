@@ -77,3 +77,30 @@ type VarExpr struct {
 func (e *VarExpr) Accept(v AstVisitor) (interface{}, error) {
 	return v.VisitVarExpr(e)
 }
+
+type GetPropertyExpr struct {
+	Name         *token.Token
+	ParentObject Expr
+}
+
+func (e *GetPropertyExpr) Accept(v AstVisitor) (interface{}, error) {
+	return v.VisitGetPropertyExpr(e)
+}
+
+type SetPropertyExpr struct {
+	Name         *token.Token
+	Value        Expr
+	ParentObject Expr
+}
+
+func (e *SetPropertyExpr) Accept(v AstVisitor) (interface{}, error) {
+	return v.VisitSetPropertyExpr(e)
+}
+
+type ThisExpr struct {
+	Keyword *token.Token
+}
+
+func (e *ThisExpr) Accept(v AstVisitor) (interface{}, error) {
+	return v.VisitThisExpr(e)
+}

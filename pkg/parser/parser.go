@@ -491,9 +491,17 @@ func (p *Parser) parseAssignment() (ast.Expr, error) {
 			return nil, err
 		}
 
-		// Only allow assignment to a VarExpr.
 		if varExpr, ok := expr.(*ast.VarExpr); ok {
-			expr, err = &ast.AssignExpr{Left: varExpr.Name, Right: right}, nil
+			expr, err = &ast.AssignExpr{
+				Left:  varExpr.Name,
+				Right: right,
+			}, nil
+		} else if getPropertyExpr, ok := expr.(*ast.GetPropertyExpr); ok {
+			expr, err = &ast.SetPropertyExpr{
+				Name:         getPropertyExpr.Name,
+				Value:        right,
+				ParentObject: getPropertyExpr.ParentObject,
+			}, nil
 		} else {
 			expr, err = nil, loxerr.AtToken(equalsToken, "Invalid assignment target.")
 		}
@@ -640,18 +648,15 @@ func (p *Parser) parseCall() (ast.Expr, error) {
 	}
 
 	// Find all consecutive call operators.
-	nextToken := p.peek(1)
-	if nextToken.Type == tokentype.LEFT_PAREN {
-		for nextToken := p.peek(1); nextToken.Type == tokentype.LEFT_PAREN; nextToken = p.peek(1) {
+	for {
+		nextToken := p.peek(1)
+		if nextToken.Type == tokentype.LEFT_PAREN { // Function call
 			p.advance()
 
 			// Extract the args for this call, if any.
 			args := []ast.Expr{}
-			if p.peekMatches(1, tokentype.RIGHT_PAREN) {
-				// No args, move on.
-				p.advance()
-			} else {
-				// Parse the args.
+			if !p.peekMatches(1, tokentype.RIGHT_PAREN) {
+				// Next token is not a right paren, so there are args to parse.
 				for {
 					arg, err := p.parseExpression()
 					if err != nil {
@@ -659,17 +664,16 @@ func (p *Parser) parseCall() (ast.Expr, error) {
 					}
 					args = append(args, arg)
 
-					// After the arg, there must be either a comma or a closing parentheses.
-					// If closing parentheses, done parsing the args.
-					// Continue parsing args if it's a comma.
-					nextSep := p.advance()
-					if nextSep.Type == tokentype.RIGHT_PAREN {
+					// After the arg, if there is not a comma, the args are done being parsed.
+					if !p.peekMatches(1, tokentype.COMMA) {
 						break
-					} else if nextSep.Type != tokentype.COMMA {
-						return nil, loxerr.AtToken(nextSep, "Expected ')' after call.")
 					}
+					p.advance()
 				}
 			}
+
+			// Whether or not there were args, the call should end with a right parentheses.
+			p.consume(tokentype.RIGHT_PAREN, "Expected ')' after call.")
 
 			// The current call becomes the callee of the next call.
 			expr = &ast.CallExpr{
@@ -677,10 +681,22 @@ func (p *Parser) parseCall() (ast.Expr, error) {
 				OpenParen: nextToken,
 				Args:      args,
 			}
+		} else if nextToken.Type == tokentype.DOT { // Property access
+			p.advance()
+
+			propertyName, err := p.consume(tokentype.IDENTIFIER, "Expected identifier.")
+			if err != nil {
+				return nil, err
+			}
+
+			expr = &ast.GetPropertyExpr{
+				Name:         propertyName,
+				ParentObject: expr,
+			}
+		} else {
+			return expr, nil
 		}
 	}
-
-	return expr, nil
 }
 
 // Parse a primary expression.
@@ -697,6 +713,8 @@ func (p *Parser) parsePrimary() (ast.Expr, error) {
 			return &ast.LiteralExpr{Value: true}, nil
 		case tokentype.FALSE:
 			return &ast.LiteralExpr{Value: false}, nil
+		case tokentype.THIS:
+			return &ast.ThisExpr{Keyword: p.peek(0)}, nil
 		case tokentype.IDENTIFIER:
 			return &ast.VarExpr{Name: matched}, nil
 		default:
