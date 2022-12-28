@@ -13,12 +13,18 @@ An interpreter for the `Lox` programming language, written in go.
 
 The following tasks are defined in the `Makefile` in the project root.
 
+- `make install` - install all dependencies
+- `make format` - format the code
 - `make generate` - run codegen
 - `make build` - build the golox binary to `build/golox`
 - `make build-<binary-name>` - build the golox binary to `build/<binary-name>`
-- `make test` - run tests
+- `make unittest` - run unit tests only
+- `make e2etest` - run end to end tests only
+- `make test` - run all tests
+- `make <task>-in-docker` - run the `task` in docker (e.g., `make test-in-docker`)
 - `make cover` - run tests and display code coverage
 - `make cover-html` - run tests and display code coverage visually in a web browser
+- `make run` - run the interpreter
 
 ## Usage
 
