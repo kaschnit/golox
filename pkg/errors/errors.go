@@ -77,23 +77,3 @@ func Runtime(t *token.Token, message string) *LoxRuntimeError {
 func (e *LoxRuntimeError) Error() string {
 	return fmt.Sprintf("[line %d] Runtime error %s: %s", e.token.Line, e.where, e.message)
 }
-
-type LoxMultiError struct {
-	errors []error
-}
-
-func Multi(errors []error) *LoxMultiError {
-	return &LoxMultiError{errors}
-}
-
-func (e *LoxMultiError) Error() string {
-	errStr := ""
-	for i := 0; i < len(e.errors); i++ {
-		errStr = fmt.Sprintf("%s\n%s", errStr, e.errors[i])
-	}
-	return errStr
-}
-
-func (e *LoxMultiError) GetErrors() []error {
-	return e.errors
-}

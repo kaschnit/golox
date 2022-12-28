@@ -1,6 +1,7 @@
 package parser
 
 import (
+	"github.com/hashicorp/go-multierror"
 	"github.com/kaschnit/golox/pkg/ast"
 	loxerr "github.com/kaschnit/golox/pkg/errors"
 	"github.com/kaschnit/golox/pkg/token"
@@ -46,12 +47,12 @@ func (p *Parser) Parse() (*ast.Program, error) {
 
 // Parse a program, which is the root of the AST.
 func (p *Parser) parseProgram() (*ast.Program, error) {
-	errors := make([]error, 0)
+	errs := new(multierror.Error)
 	statements := make([]ast.Stmt, 0)
 	for !p.isAtEnd() {
 		stmt, err := p.parseStatement()
 		if err != nil {
-			errors = append(errors, err)
+			errs = multierror.Append(errs, err)
 			p.synchronize()
 		} else {
 			statements = append(statements, stmt)
@@ -59,11 +60,7 @@ func (p *Parser) parseProgram() (*ast.Program, error) {
 	}
 
 	program := &ast.Program{Statements: statements}
-	if len(errors) > 0 {
-		return program, loxerr.Multi(errors)
-	} else {
-		return program, nil
-	}
+	return program, errs.ErrorOrNil()
 }
 
 // Parse a statement with the type of statement based on the next token.
@@ -705,7 +702,6 @@ func (p *Parser) parsePrimary() (ast.Expr, error) {
 		tokentype.NUMBER, tokentype.STRING,
 		tokentype.TRUE, tokentype.FALSE,
 		tokentype.IDENTIFIER, tokentype.NIL,
-		tokentype.THIS,
 	}
 	if p.peekMatches(1, matchTokens...) {
 		matched := p.advance()

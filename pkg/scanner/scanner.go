@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strconv"
 
+	"github.com/hashicorp/go-multierror"
 	loxerr "github.com/kaschnit/golox/pkg/errors"
 	"github.com/kaschnit/golox/pkg/token"
 	"github.com/kaschnit/golox/pkg/token/tokentype"
@@ -55,24 +56,19 @@ func (s *Scanner) Reset() {
 // Tokenize the remaining input that has not been scanned yet.
 func (s *Scanner) ScanAllTokens() ([]*token.Token, error) {
 	tokens := make([]*token.Token, 0)
-	errs := make([]error, 0)
+	errs := new(multierror.Error)
 	for !s.finished {
 		nextToken, err := s.ScanToken()
 
 		// Continue scanning even if an error is encountered.
 		if err != nil {
-			errs = append(errs, err)
+			errs = multierror.Append(errs, err)
 		} else {
 			tokens = append(tokens, nextToken)
 		}
-
 	}
 
-	if len(errs) > 0 {
-		return tokens, loxerr.Multi(errs)
-	}
-
-	return tokens, nil
+	return tokens, errs.ErrorOrNil()
 }
 
 // Scan the next token.

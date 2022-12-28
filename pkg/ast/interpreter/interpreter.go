@@ -86,7 +86,10 @@ func (a *AstInterpreter) VisitWhileStmt(s *ast.WhileStmt) (interface{}, error) {
 
 	i := 0
 	for conversion.IsTruthy(cond) {
-		s.LoopStatement.Accept(a)
+		_, err := s.LoopStatement.Accept(a)
+		if err != nil {
+			return nil, err
+		}
 
 		cond, err = s.Condition.Accept(a)
 		if err != nil {

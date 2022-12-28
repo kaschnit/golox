@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"testing"
 
-	loxerr "github.com/kaschnit/golox/pkg/errors"
+	"github.com/hashicorp/go-multierror"
 	"github.com/kaschnit/golox/pkg/token"
 	"github.com/kaschnit/golox/pkg/token/tokentype"
 	"github.com/stretchr/testify/assert"
@@ -497,8 +497,8 @@ xyz ^^~[ _ {()()} ~
 	tokens, err = scanner.ScanAllTokens()
 	assert.Len(t, tokens, 12) // The number of tokens in the string, plus an EOF token
 	assert.Error(t, err)
-	assert.IsType(t, &loxerr.LoxMultiError{}, err)
-	assert.Len(t, err.(*loxerr.LoxMultiError).GetErrors(), 5) // 5 unrecognized characters
+	assert.IsType(t, &multierror.Error{}, err)
+	assert.Equal(t, err.(*multierror.Error).Len(), 5) // 5 unrecognized characters
 
 	// Nothing returned when calling it again
 	tokens, err = scanner.ScanAllTokens()
