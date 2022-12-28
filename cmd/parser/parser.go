@@ -3,9 +3,9 @@ package parser
 import (
 	"fmt"
 
+	"github.com/kaschnit/golox/pkg/ast/astutil"
 	"github.com/kaschnit/golox/pkg/ast/printer"
 	"github.com/kaschnit/golox/pkg/cli"
-	"github.com/kaschnit/golox/pkg/cli/cli_common"
 	"github.com/spf13/cobra"
 )
 
@@ -38,7 +38,7 @@ func runParserCmd(_ *cobra.Command, args []string) {
 
 func parseSourceFile(filepath string) {
 	visitor := printer.NewAstPrinter()
-	err := cli_common.ParseSourceFileAndVisit(filepath, visitor)
+	err := astutil.ParseSourceFileAndVisit(filepath, visitor)
 	if err != nil {
 		fmt.Println(err)
 	}
@@ -47,7 +47,7 @@ func parseSourceFile(filepath string) {
 func startParserRepl() {
 	visitor := printer.NewAstPrinter()
 	cli.NewRepl(func(line string) {
-		err := cli_common.ParseLineAndVisit(line, visitor)
+		err := astutil.ParseLineAndVisit(line, visitor)
 		if err != nil {
 			fmt.Println(err)
 		}

@@ -8,6 +8,9 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+// TODO: move most of these to unit tests (not CLI calls).
+// Keep some CLI calls to exercise the CLI.
+
 func TestMain(m *testing.M) {
 	e2e_testutil.BuildTestBinary()
 	exitCode := m.Run()

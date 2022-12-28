@@ -15,21 +15,21 @@ func getWhere(t *token.Token) string {
 }
 
 type LoxErrorAtToken struct {
-	token   *token.Token
+	Token   *token.Token
 	where   string
 	message string
 }
 
 func AtToken(t *token.Token, message string) *LoxErrorAtToken {
 	return &LoxErrorAtToken{
-		token:   t,
+		Token:   t,
 		where:   getWhere(t),
 		message: message,
 	}
 }
 
 func (e *LoxErrorAtToken) Error() string {
-	return fmt.Sprintf("[line %d] Error %s: %s", e.token.Line, e.where, e.message)
+	return fmt.Sprintf("[line %d] Error %s: %s", e.Token.Line, e.where, e.message)
 }
 
 type LoxErrorAtLine struct {

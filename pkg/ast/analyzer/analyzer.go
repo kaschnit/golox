@@ -3,7 +3,6 @@ package analyzer
 import (
 	"github.com/hashicorp/go-multierror"
 	"github.com/kaschnit/golox/pkg/ast"
-	"github.com/kaschnit/golox/pkg/ast/interpreter"
 	loxerr "github.com/kaschnit/golox/pkg/errors"
 )
 
@@ -26,16 +25,14 @@ const (
 )
 
 type AstAnalyzer struct {
-	interpreter         *interpreter.AstInterpreter
 	scopes              []Scope
 	resolutionDistance  map[ast.Expr]int
 	currentClassType    ClassType
 	currentFunctionType FunctionType
 }
 
-func NewAstAnalyzer(interpreter *interpreter.AstInterpreter) *AstAnalyzer {
+func NewAstAnalyzer() *AstAnalyzer {
 	return &AstAnalyzer{
-		interpreter:         interpreter,
 		scopes:              make([]Scope, 0),
 		resolutionDistance:  make(map[ast.Expr]int),
 		currentClassType:    ClassTypeNone,

@@ -7,9 +7,13 @@ import (
 	"runtime"
 )
 
-func GetPath(subPath string) string {
+func GetDirectoryPath() string {
 	_, filepath, _, _ := runtime.Caller(0)
-	return path.Join(path.Dir(filepath), subPath)
+	return path.Dir(filepath)
+}
+
+func GetPath(subPath string) string {
+	return path.Join(GetDirectoryPath(), subPath)
 }
 
 func ReadProgramText(subPath string) string {

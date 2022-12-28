@@ -1,0 +1,7 @@
+fun myFunc() {
+    return this; // error
+}
+
+print this; // error
+
+myFunc();

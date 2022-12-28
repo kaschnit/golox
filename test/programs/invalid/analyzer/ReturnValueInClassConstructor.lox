@@ -1,0 +1,29 @@
+class MyFirstClass {
+    init() {
+        return 1;
+    }
+}
+
+class MySecondClass {
+    init() {
+        this.hello = 1.54321;
+        return nil;
+        this.x = 2;
+    }
+}
+
+class MyThirdClass {
+    init() {
+        var x = 5;
+        if (5 == 4) {
+            return this;
+        }
+    }
+}
+
+class MyFourthClass {
+    init() {
+        print 123;
+        return "hello";
+    }
+}

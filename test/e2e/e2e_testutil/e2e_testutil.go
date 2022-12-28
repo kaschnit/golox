@@ -5,6 +5,7 @@ import (
 	"os/exec"
 	"path"
 
+	"github.com/kaschnit/golox/pkg/ast/interpreter/interpreterutil"
 	"github.com/kaschnit/golox/test/e2e/testconst"
 	"github.com/kaschnit/golox/test/programs"
 	"github.com/kaschnit/golox/test/testutil"
@@ -33,7 +34,23 @@ func ParseTestProgram(programName string) (string, error) {
 }
 
 func InterpretTestProgram(programName string) (string, error) {
-	return RunTestBinary(testconst.INTERPRETER_CMD, programs.GetPath(programName))
+	callOutput, err := testutil.CaptureOutput(func() {
+		interpreterutil.InterpretSourceFile(programs.GetPath(programName))
+	})
+	if err != nil {
+		return callOutput, err
+	}
+
+	cliOutput, err := RunTestBinary(testconst.INTERPRETER_CMD, programs.GetPath(programName))
+	if err != nil {
+		return cliOutput, err
+	}
+
+	if callOutput != cliOutput {
+		return "", fmt.Errorf("calling interpreter failed: expected call output (%s) to equal CLI output (%s)", callOutput, cliOutput)
+	}
+
+	return callOutput, err
 }
 
 func BuildTestBinary() {

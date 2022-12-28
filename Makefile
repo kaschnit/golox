@@ -15,7 +15,7 @@ generate:
 .PHONY: unittest
 unittest:
 	mkdir -p coverage
-	go test -coverpkg=$(shell go list ./... | grep -v /test/) -coverprofile=./coverage/profile.cov $(shell go list ./... | grep -v /test/)
+	go test -coverpkg=./... -coverprofile=./coverage/profile.cov $(shell go list ./... | grep -v /test/)
 
 .PHONY: e2etest
 e2etest:

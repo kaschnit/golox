@@ -1,0 +1,12 @@
+fun main() {
+    var x = 2;
+    x = x;
+
+    var y = y; // error
+    var z = z; // error
+
+    var a = a + 1; // error
+    var b = 2 + b; // error
+}
+
+main();
