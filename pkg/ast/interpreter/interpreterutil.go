@@ -1,16 +1,15 @@
-package interpreterutil
+package interpreter
 
 import (
 	"github.com/kaschnit/golox/pkg/ast"
 	"github.com/kaschnit/golox/pkg/ast/analyzer"
 	"github.com/kaschnit/golox/pkg/ast/astutil"
-	"github.com/kaschnit/golox/pkg/ast/interpreter"
 )
 
 func getVisitors() []ast.AstVisitor {
 	return []ast.AstVisitor{
 		analyzer.NewAstAnalyzer(),
-		interpreter.NewAstInterpreter(),
+		NewAstInterpreter(),
 	}
 }
 

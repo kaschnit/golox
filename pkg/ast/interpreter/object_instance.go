@@ -36,5 +36,5 @@ func (c *LoxClassInstance) SetProperty(propertyName *token.Token, value interfac
 }
 
 func (c *LoxClassInstance) String() string {
-	return fmt.Sprintf("<instance of %s [%p]>", c.Class.declaration.Name.Lexeme, c)
+	return fmt.Sprintf("<instance of %s [%p]>", c.Class, c)
 }

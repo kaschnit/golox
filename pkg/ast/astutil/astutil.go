@@ -3,14 +3,13 @@ package astutil
 import (
 	"github.com/kaschnit/golox/pkg/ast"
 	"github.com/kaschnit/golox/pkg/parser"
-	"github.com/kaschnit/golox/pkg/parser/parserutil"
 	"github.com/kaschnit/golox/pkg/scanner"
 )
 
 // Parse the source code in the file located at filepath and apply the visitor to the root
 // of the AST that is produced, visiting each node in the AST.
 func ParseSourceFileAndVisit(filepath string, visitors ...ast.AstVisitor) error {
-	programAst, err := parserutil.ParseSourceFile(filepath)
+	programAst, err := parser.ParseSourceFile(filepath)
 	if err != nil {
 		return err
 	}

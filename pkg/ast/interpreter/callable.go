@@ -123,5 +123,5 @@ func (f *NativeFunction) Call(interpreter *AstInterpreter, args []interface{}) (
 }
 
 func (f *NativeFunction) String() string {
-	return fmt.Sprintf("<native function %s>", f.name)
+	return fmt.Sprintf("<native function %s [%p]>", f.name, f)
 }

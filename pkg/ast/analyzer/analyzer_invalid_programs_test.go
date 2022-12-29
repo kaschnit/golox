@@ -5,7 +5,7 @@ import (
 
 	"github.com/hashicorp/go-multierror"
 	loxerr "github.com/kaschnit/golox/pkg/errors"
-	"github.com/kaschnit/golox/pkg/parser/parserutil"
+	"github.com/kaschnit/golox/pkg/parser"
 	"github.com/kaschnit/golox/pkg/token/tokentype"
 	"github.com/kaschnit/golox/test/programs"
 	"github.com/stretchr/testify/assert"
@@ -13,7 +13,7 @@ import (
 
 func analyzeProgram(t *testing.T, subPath string) (interface{}, error) {
 	filepath := programs.GetPath(subPath)
-	programAst, err := parserutil.ParseSourceFile(filepath)
+	programAst, err := parser.ParseSourceFile(filepath)
 	assert.Nil(t, err)
 
 	return NewAstAnalyzer().VisitProgram(programAst)

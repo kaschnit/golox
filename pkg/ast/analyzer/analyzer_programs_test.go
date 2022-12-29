@@ -3,14 +3,14 @@ package analyzer
 import (
 	"testing"
 
-	"github.com/kaschnit/golox/pkg/parser/parserutil"
+	"github.com/kaschnit/golox/pkg/parser"
 	"github.com/kaschnit/golox/test/programs"
 	"github.com/stretchr/testify/assert"
 )
 
 func assertProgramHasNoAnalyzerErrors(t *testing.T, programPath string) {
 	filepath := programs.GetPath(programPath)
-	programAst, err := parserutil.ParseSourceFile(filepath)
+	programAst, err := parser.ParseSourceFile(filepath)
 	assert.Nil(t, err)
 
 	result, err := NewAstAnalyzer().VisitProgram(programAst)

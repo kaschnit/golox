@@ -22,7 +22,7 @@ func (e *Environment) Get(varName string) (value interface{}, exists bool) {
 func (e *Environment) TraverseGet(varName string) (value interface{}, exists bool) {
 	envWithVar := e.findEnvContainingName(varName)
 	if envWithVar == nil {
-		return envWithVar, false
+		return nil, false
 	}
 	return envWithVar.vars[varName], true
 }

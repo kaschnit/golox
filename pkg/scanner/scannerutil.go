@@ -1,10 +1,9 @@
-package scannerutil
+package scanner
 
 import (
 	"io"
 	"os"
 
-	"github.com/kaschnit/golox/pkg/scanner"
 	"github.com/kaschnit/golox/pkg/token"
 )
 
@@ -26,7 +25,7 @@ func ScanSourceFile(filepath string) ([]*token.Token, error) {
 		return nil, err
 	}
 
-	scanner := scanner.NewScanner(string(sourceCode))
+	scanner := NewScanner(string(sourceCode))
 	tokens, err := scanner.ScanAllTokens()
 	if err != nil {
 		return nil, err
