@@ -1,0 +1,3 @@
+var someInteger = 1;
+print someInteger.someProperty; // error, interpreter stops here
+print someInteger.otherProperty; // would be an error, but interpreter already stopped
