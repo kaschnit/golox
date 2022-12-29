@@ -358,12 +358,21 @@ func (p *Parser) parseClassStatement() (*ast.ClassStmt, error) {
 	// Parse each method declaration within the class declaration.
 	var constructor *ast.FunctionStmt
 	methods := make([]*ast.FunctionStmt, 0)
+	staticMethods := make([]*ast.FunctionStmt, 0)
 	for !p.peekMatches(1, tokentype.RIGHT_BRACE) && !p.isAtEnd() {
+		isStaticMethod := p.peekMatches(1, tokentype.CLASS)
+		if isStaticMethod {
+			// Move past the "class" token
+			p.advance()
+		}
+
 		funcStatement, err := p.parseFunctionStatement()
 		if err != nil {
 			return nil, err
 		}
-		if funcStatement.Name.Lexeme == "init" {
+		if isStaticMethod {
+			staticMethods = append(staticMethods, funcStatement)
+		} else if funcStatement.Name.Lexeme == "init" {
 			constructor = funcStatement
 		} else {
 			methods = append(methods, funcStatement)
@@ -376,9 +385,10 @@ func (p *Parser) parseClassStatement() (*ast.ClassStmt, error) {
 	}
 
 	return &ast.ClassStmt{
-		Name:        name,
-		Constructor: constructor,
-		Methods:     methods,
+		Name:          name,
+		Constructor:   constructor,
+		Methods:       methods,
+		StaticMethods: staticMethods,
 	}, nil
 }
 

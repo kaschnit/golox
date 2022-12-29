@@ -47,15 +47,17 @@ func runInterpreterCmd(_ *cobra.Command, args []string) {
 }
 
 func interpretSourceFile(filepath string) {
-	err := ast_interpreter.InterpretSourceFile(filepath)
+	interp := ast_interpreter.NewInterpreterWrapper()
+	err := interp.InterpretSourceFile(filepath)
 	if err != nil {
 		fmt.Println(err)
 	}
 }
 
 func startInterpreterRepl() {
+	interp := ast_interpreter.NewInterpreterWrapper()
 	cli.NewRepl(func(line string) {
-		err := ast_interpreter.InterpretLine(line)
+		err := interp.InterpretLine(line)
 		if err != nil {
 			fmt.Println(err)
 		}

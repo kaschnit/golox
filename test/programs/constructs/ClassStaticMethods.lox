@@ -1,0 +1,34 @@
+var fooInstance = nil;
+class FooSingleton {
+
+    class getInstance(initialVal) {
+        print "getting instance";
+        if (fooInstance == nil) {
+            fooInstance = FooSingleton();
+            fooInstance.val = initialVal;
+        }
+        return fooInstance;
+    }
+
+    class printStuff() {
+        print "static print";
+    }
+
+    class printNumSquared(num) {
+        print "param static print ";
+        print num * num;
+    }
+
+    printInstance() {
+        print "instance value ";
+        print this.val;
+    }
+}
+
+var f = FooSingleton.getInstance(99); // "getting instance"
+print "; "; // "; "
+f.printInstance(); // "instance value 99"
+print "; "; // "; "
+FooSingleton.printStuff(); // "static print"
+print "; "; // "; "
+FooSingleton.printNumSquared(7); // "param static print 49"

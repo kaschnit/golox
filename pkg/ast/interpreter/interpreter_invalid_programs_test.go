@@ -4,13 +4,11 @@ import (
 	"testing"
 
 	loxerr "github.com/kaschnit/golox/pkg/errors"
-	"github.com/kaschnit/golox/test/programs"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestInterpreter_InvalidProgram_GetClassInstanceUndefinedProperty(t *testing.T) {
-	filepath := programs.GetPath("invalid/interpreter/GetClassInstanceUndefinedProperty.lox")
-	err := InterpretSourceFile(filepath)
+	err := interpretSourceFile("invalid/interpreter/GetClassInstanceUndefinedProperty.lox")
 	assert.Error(t, err)
 	assert.IsType(t, &loxerr.LoxRuntimeError{}, err)
 
@@ -20,30 +18,28 @@ func TestInterpreter_InvalidProgram_GetClassInstanceUndefinedProperty(t *testing
 	assert.ErrorContains(t, runtimeErr, "not defined")
 }
 func TestInterpreter_InvalidProgram_PropertyAccessOnNonClass(t *testing.T) {
-	filepath := programs.GetPath("invalid/interpreter/PropertyAccessOnNonClass.lox")
-	err := InterpretSourceFile(filepath)
+	err := interpretSourceFile("invalid/interpreter/PropertyAccessOnNonClass.lox")
 	assert.Error(t, err)
 	assert.IsType(t, &loxerr.LoxRuntimeError{}, err)
 
 	runtimeErr := err.(*loxerr.LoxRuntimeError)
 	assert.Equal(t, "someProperty", runtimeErr.Token.Lexeme)
-	assert.ErrorContains(t, runtimeErr, "class instance")
+	assert.ErrorContains(t, runtimeErr, "instance")
 }
 
 func TestInterpreter_InvalidProgram_PropertySetOnNonClass(t *testing.T) {
-	filepath := programs.GetPath("invalid/interpreter/PropertySetOnNonClass.lox")
-	err := InterpretSourceFile(filepath)
+	err := interpretSourceFile("invalid/interpreter/PropertySetOnNonClass.lox")
+
 	assert.Error(t, err)
 	assert.IsType(t, &loxerr.LoxRuntimeError{}, err)
 
 	runtimeErr := err.(*loxerr.LoxRuntimeError)
 	assert.Equal(t, "someProperty", runtimeErr.Token.Lexeme)
-	assert.ErrorContains(t, runtimeErr, "class instance")
+	assert.ErrorContains(t, runtimeErr, "instance")
 }
 
 func TestInterpreter_InvalidProgram_VariableNotDefinedAssignment(t *testing.T) {
-	filepath := programs.GetPath("invalid/interpreter/VariableNotDefinedAssignment.lox")
-	err := InterpretSourceFile(filepath)
+	err := interpretSourceFile("invalid/interpreter/VariableNotDefinedAssignment.lox")
 	assert.Error(t, err)
 	assert.IsType(t, &loxerr.LoxRuntimeError{}, err)
 
@@ -53,8 +49,7 @@ func TestInterpreter_InvalidProgram_VariableNotDefinedAssignment(t *testing.T) {
 }
 
 func TestInterpreter_InvalidProgram_VariableNotDefinedInitialization(t *testing.T) {
-	filepath := programs.GetPath("invalid/interpreter/VariableNotDefinedInitialization.lox")
-	err := InterpretSourceFile(filepath)
+	err := interpretSourceFile("invalid/interpreter/VariableNotDefinedInitialization.lox")
 	assert.Error(t, err)
 	assert.IsType(t, &loxerr.LoxRuntimeError{}, err)
 
@@ -64,8 +59,7 @@ func TestInterpreter_InvalidProgram_VariableNotDefinedInitialization(t *testing.
 }
 
 func TestInterpreter_InvalidProgram_VariableNotDefinedPrint(t *testing.T) {
-	filepath := programs.GetPath("invalid/interpreter/VariableNotDefinedPrint.lox")
-	err := InterpretSourceFile(filepath)
+	err := interpretSourceFile("invalid/interpreter/VariableNotDefinedPrint.lox")
 	assert.Error(t, err)
 	assert.IsType(t, &loxerr.LoxRuntimeError{}, err)
 

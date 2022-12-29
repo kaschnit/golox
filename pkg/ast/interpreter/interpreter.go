@@ -316,7 +316,14 @@ func (a *AstInterpreter) VisitGetPropertyExpr(e *ast.GetPropertyExpr) (interface
 
 	instance, ok := parentObj.(*LoxClassInstance)
 	if !ok {
-		return nil, loxerr.Runtime(e.Name, "Only class instances have properties.")
+		cls, ok := parentObj.(*LoxClass)
+		if !ok {
+			return nil, loxerr.Runtime(e.Name, "Only instances have properties.")
+		}
+		if cls == nil {
+			return nil, loxerr.Internal(fmt.Sprintf("Somehow the metaclass of metaclass %s is being accessed!", cls))
+		}
+		instance = cls.metaclassInstance
 	}
 
 	return instance.GetProperty(e.Name)
@@ -330,7 +337,14 @@ func (a *AstInterpreter) VisitSetPropertyExpr(e *ast.SetPropertyExpr) (interface
 
 	instance, ok := parentObj.(*LoxClassInstance)
 	if !ok {
-		return nil, loxerr.Runtime(e.Name, "Only class instances have properties.")
+		cls, ok := parentObj.(*LoxClass)
+		if !ok {
+			return nil, loxerr.Runtime(e.Name, "Only instances have properties.")
+		}
+		if cls == nil {
+			return nil, loxerr.Internal(fmt.Sprintf("Somehow the metaclass of metaclass %s is being accessed!", cls))
+		}
+		instance = cls.metaclassInstance
 	}
 
 	value, err := e.Value.Accept(a)

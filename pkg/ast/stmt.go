@@ -67,9 +67,10 @@ func (s *BlockStmt) Accept(v AstVisitor) (interface{}, error) {
 
 // Represents a class declaration statement AST node.
 type ClassStmt struct {
-	Name        *token.Token
-	Constructor *FunctionStmt
-	Methods     []*FunctionStmt
+	Name          *token.Token
+	Constructor   *FunctionStmt
+	Methods       []*FunctionStmt
+	StaticMethods []*FunctionStmt
 }
 
 func (s *ClassStmt) Accept(v AstVisitor) (interface{}, error) {

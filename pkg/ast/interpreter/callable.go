@@ -58,21 +58,26 @@ func (f *LoxFunction) String() string {
 
 // Runtime representation of user-defined class
 type LoxClass struct {
-	declaration *ast.ClassStmt
-	closure     *environment.Environment
-	methods     map[string]*LoxFunction
+	declaration       *ast.ClassStmt
+	closure           *environment.Environment
+	methods           map[string]*LoxFunction
+	metaclassInstance *LoxClassInstance
 }
 
 func NewLoxClass(declaration *ast.ClassStmt, closure *environment.Environment) *LoxClass {
-	methods := make(map[string]*LoxFunction)
-	for _, method := range declaration.Methods {
-		methods[method.Name.Lexeme] = NewLoxFunction(method, closure)
+	metaclass := &LoxClass{
+		declaration:       declaration,
+		closure:           closure,
+		methods:           getFunctionsMap(declaration.StaticMethods, closure),
+		metaclassInstance: nil,
 	}
+	metaclassInstance := NewLoxClassInstance(metaclass)
 
 	return &LoxClass{
-		declaration: declaration,
-		closure:     closure,
-		methods:     methods,
+		declaration:       declaration,
+		closure:           closure,
+		methods:           getFunctionsMap(declaration.Methods, closure),
+		metaclassInstance: metaclassInstance,
 	}
 }
 
@@ -124,4 +129,12 @@ func (f *NativeFunction) Call(interpreter *AstInterpreter, args []interface{}) (
 
 func (f *NativeFunction) String() string {
 	return fmt.Sprintf("<native function %s [%p]>", f.name, f)
+}
+
+func getFunctionsMap(declarations []*ast.FunctionStmt, closure *environment.Environment) map[string]*LoxFunction {
+	functions := make(map[string]*LoxFunction)
+	for _, function := range declarations {
+		functions[function.Name.Lexeme] = NewLoxFunction(function, closure)
+	}
+	return functions
 }

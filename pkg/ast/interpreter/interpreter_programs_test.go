@@ -11,9 +11,14 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+func interpretSourceFile(subPath string) error {
+	filepath := programs.GetPath(subPath)
+	return NewInterpreterWrapper().InterpretSourceFile(filepath)
+}
+
 func getInterpreterOutput(programName string) (string, error) {
 	return testutil.CaptureOutput(func() error {
-		return InterpretSourceFile(programs.GetPath(programName))
+		return interpretSourceFile(programName)
 	})
 }
 
@@ -45,6 +50,11 @@ func TestOutput_Construct_ClassMethods(t *testing.T) {
 	result, err := getInterpreterOutput("constructs/ClassMethods.lox")
 	assert.Nil(t, err)
 	assert.Equal(t, "AH! 100", result)
+}
+func TestOutput_Construct_ClassStaticMethods(t *testing.T) {
+	result, err := getInterpreterOutput("constructs/ClassStaticMethods.lox")
+	assert.Nil(t, err)
+	assert.Equal(t, "getting instance; instance value 99; static print; param static print 49", result)
 }
 
 func TestOutput_Construct_ClassThisKeyword(t *testing.T) {
