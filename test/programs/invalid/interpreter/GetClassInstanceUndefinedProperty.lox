@@ -1,0 +1,10 @@
+class ApiServer {
+    init() {
+        this.routes = nil;
+    }
+}
+
+var server = ApiServer();
+
+print server.routes;
+print server.hello;

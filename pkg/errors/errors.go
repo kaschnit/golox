@@ -61,19 +61,19 @@ func (e *LoxInternalError) Error() string {
 }
 
 type LoxRuntimeError struct {
-	token   *token.Token
+	Token   *token.Token
 	where   string
 	message string
 }
 
 func Runtime(t *token.Token, message string) *LoxRuntimeError {
 	return &LoxRuntimeError{
-		token:   t,
+		Token:   t,
 		where:   getWhere(t),
 		message: message,
 	}
 }
 
 func (e *LoxRuntimeError) Error() string {
-	return fmt.Sprintf("[line %d] Runtime error %s: %s", e.token.Line, e.where, e.message)
+	return fmt.Sprintf("[line %d] Runtime error %s: %s", e.Token.Line, e.where, e.message)
 }
