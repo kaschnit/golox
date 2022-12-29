@@ -1,7 +1,10 @@
 package interpreter
 
 import (
+	"strconv"
+	"strings"
 	"testing"
+	"time"
 
 	"github.com/kaschnit/golox/test/programs"
 	"github.com/kaschnit/golox/test/testutil"
@@ -9,8 +12,8 @@ import (
 )
 
 func getInterpreterOutput(programName string) (string, error) {
-	return testutil.CaptureOutput(func() {
-		InterpretSourceFile(programs.GetPath(programName))
+	return testutil.CaptureOutput(func() error {
+		return InterpretSourceFile(programs.GetPath(programName))
 	})
 }
 
@@ -18,6 +21,12 @@ func TestOutput_Construct_Assignment(t *testing.T) {
 	result, err := getInterpreterOutput("constructs/Assignment.lox")
 	assert.Nil(t, err)
 	assert.Equal(t, "-12 398", result)
+}
+
+func TestOutput_Construct_ClassConstructorEarlyReturn(t *testing.T) {
+	result, err := getInterpreterOutput("constructs/ClassConstructorEarlyReturn.lox")
+	assert.Nil(t, err)
+	assert.Equal(t, "123123123", result)
 }
 
 func TestOutput_Construct_ClassConstructorWithArgs(t *testing.T) {
@@ -92,6 +101,28 @@ func TestOutput_Construct_LogicalOr(t *testing.T) {
 	assert.Equal(t, "false true true true true", result)
 }
 
+func TestOutput_Construct_NativeFunction_Clock(t *testing.T) {
+	result, err := getInterpreterOutput("constructs/NativeFunction_Clock.lox")
+	assert.Nil(t, err)
+	assert.True(t, strings.HasPrefix(result, "<native function clock ["))
+	assert.Contains(t, result, " => ")
+
+	parts := strings.Split(result, " => ")
+	assert.Len(t, parts, 2)
+	assert.True(t, strings.HasPrefix(string(parts[0]), "<native function clock ["))
+	assert.True(t, strings.HasSuffix(string(parts[0]), "]>"))
+
+	unixTimestamp, err := strconv.ParseInt(parts[1], 10, 64)
+	assert.Nil(t, err)
+
+	oneHour, err := time.ParseDuration("1h")
+	assert.Nil(t, err)
+
+	laterTimestamp := time.Now().Add(oneHour)
+	programTimestamp := time.Unix(unixTimestamp, 0)
+	assert.Greater(t, laterTimestamp, programTimestamp)
+}
+
 func TestOutput_Construct_NumericArithmeticOperations(t *testing.T) {
 	result, err := getInterpreterOutput("constructs/NumericArithmeticOperations.lox")
 	assert.Nil(t, err)
@@ -114,6 +145,12 @@ func TestOutput_Construct_ReturnEarlyFromFunction(t *testing.T) {
 	result, err := getInterpreterOutput("constructs/ReturnEarlyFromFunction.lox")
 	assert.Nil(t, err)
 	assert.Equal(t, "Yay!", result)
+}
+
+func TestOutput_Construct_ReturnNoValue(t *testing.T) {
+	result, err := getInterpreterOutput("constructs/ReturnNoValue.lox")
+	assert.Nil(t, err)
+	assert.Equal(t, "0123", result)
 }
 
 func TestOutput_Construct_Scoping(t *testing.T) {

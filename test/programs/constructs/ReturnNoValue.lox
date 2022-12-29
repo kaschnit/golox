@@ -1,0 +1,31 @@
+
+class MyClass {
+    init() {
+        print 0;
+        return;
+    }
+
+    myFavoriteMethod() {
+        print 1;
+        if (true) {
+            return;
+        }
+        print "this should not be reached";
+    }
+}
+
+fun myFavoriteFunc() {
+    print 2;
+    return;
+}
+
+fun myOtherFunc() {
+    print 3;
+    return;
+    print "also should not be reached";
+}
+
+var m = MyClass(); // 0
+m.myFavoriteMethod(); // 1
+myFavoriteFunc(); // 2
+myOtherFunc(); // 3

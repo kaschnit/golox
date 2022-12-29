@@ -1,0 +1,3 @@
+print clock; // <native function clock>
+print " => ";
+print clock(); // <current unix timestamp>

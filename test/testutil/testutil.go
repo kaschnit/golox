@@ -13,7 +13,7 @@ func GetProjectRoot() string {
 	return result
 }
 
-func CaptureOutput(handler func()) (string, error) {
+func CaptureOutput(handler func() error) (string, error) {
 	rescueStdout := os.Stdout
 	rescueStderr := os.Stderr
 	defer func() {
@@ -29,7 +29,10 @@ func CaptureOutput(handler func()) (string, error) {
 	os.Stdout = w
 	os.Stderr = w
 
-	handler()
+	err = handler()
+	if err != nil {
+		return "", err
+	}
 
 	w.Close()
 	out, err := io.ReadAll(r)

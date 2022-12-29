@@ -1,0 +1,13 @@
+var counter = 123;
+
+class Car {
+    init() {
+        print counter;
+        return;
+        counter = (counter + 1);
+    }
+}
+
+Car(); // 123
+var car = Car(); // 123
+Car(); // 123

@@ -53,11 +53,14 @@ func (a *AstInterpreter) VisitPrintStmt(s *ast.PrintStmt) (interface{}, error) {
 }
 
 func (a *AstInterpreter) VisitReturnStmt(s *ast.ReturnStmt) (interface{}, error) {
-	value, err := s.Expression.Accept(a)
-	if err != nil {
-		return nil, err
+	if s.Expression != nil {
+		value, err := s.Expression.Accept(a)
+		if err != nil {
+			return nil, err
+		}
+		return nil, NewReturn(value)
 	}
-	return nil, NewReturn(value)
+	return nil, NewReturn(nil)
 }
 
 func (a *AstInterpreter) VisitExprStmt(s *ast.ExprStmt) (interface{}, error) {
