@@ -1,4 +1,4 @@
-FROM golang:1.19.4-alpine AS builder
+FROM golang:1.19.4-alpine3.17 AS builder
 
 RUN apk add --update make build-base
 
@@ -15,6 +15,6 @@ COPY ./ ./
 
 RUN make build
 
-FROM golang:1.19.4-alpine AS runner
+FROM alpine:3.17.0 AS runner
 
 COPY --from=builder /app/build/golox /bin/golox
